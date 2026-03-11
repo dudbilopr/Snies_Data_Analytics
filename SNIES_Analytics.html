@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SNIES Analytics - Radiología y afines</title>
+    
+    <!-- Tailwind CSS para diseño multiplataforma -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Librerías de datos -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+
+    <style>
+        body { background-color: #f8fafc; font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; }
+        .chart-card { background: white; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); padding: 1.25rem; border: 1px solid #e2e8f0; height: 100%; min-height: 420px; transition: all 0.3s ease; position: relative; }
+        .kpi-card { background: white; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); padding: 1.25rem; border: 1px solid #e2e8f0; position: relative; cursor: help; }
+        .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); transition: all 0.2s; }
+        
+        .tooltip-text { visibility: hidden; width: 250px; background-color: #1e293b; color: #fff; text-align: left; border-radius: 6px; padding: 10px; position: absolute; z-index: 50; bottom: 110%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.3s; font-size: 0.75rem; font-weight: normal; line-height: 1.4; pointer-events: none; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); }
+        .tooltip-text::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #1e293b transparent transparent transparent; }
+        .kpi-card:hover .tooltip-text { visibility: visible; opacity: 1; }
+
+        .file-input-wrapper { position: relative; overflow: hidden; display: inline-block; }
+        .file-input-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; }
+        select { background-color: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 0.5rem; padding: 0.5rem; width: 100%; outline: none; font-size: 0.875rem; }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- Navbar -->
+    <nav class="bg-slate-900 text-white shadow-xl px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4 sticky top-0 z-40">
+        <div class="text-center md:text-left">
+            <h1 class="text-2xl font-black tracking-tight text-blue-400">GeoData Analytics</h1>
+            <p class="text-xs text-slate-400 uppercase tracking-wide">Análisis Matrículas (Radiología)</p>
+        </div>
+        
+        <div class="flex items-center gap-4">
+            <span id="indicador-auto-load" class="text-xs text-emerald-400 hidden flex items-center gap-1">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                Datos Sincronizados
+            </span>
+            <div class="file-input-wrapper">
+                <button class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-2 px-4 rounded-lg shadow transition-all">
+                    📁 Cargar Dataset Manual
+                </button>
+                <input type="file" id="upload-file" accept=".csv, .xlsx, .xls" />
+            </div>
+        </div>
+    </nav>
+
+    <!-- Filtros -->
+    <div id="panel-filtros" class="hidden bg-white border-b shadow-sm px-6 py-4 mb-4 z-30">
+        <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Programa</label><select id="filtro-programa" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
+            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">IES</label><select id="filtro-ies" onchange="aplicarFiltros()"><option value="TODOS">Todas</option></select></div>
+            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Año</label><select id="filtro-año" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
+            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Nivel</label><select id="filtro-nivel" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
+            <div><label class="block text-xs font-bold text-slate-500 uppercase mb-1">Departamento</label><select id="filtro-depto" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
+        </div>
+    </div>
+
+    <!-- Pantalla de Carga -->
+    <div id="mensaje-estado" class="flex flex-col items-center justify-center mt-20 text-center px-4">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600 mb-4"></div>
+        <h2 id="texto-carga" class="text-2xl font-black text-slate-700 mb-2">Inicializando Motor Geográfico...</h2>
+        <p class="text-sm text-slate-500">Descargando divisiones políticas de Colombia y base de datos.</p>
+    </div>
+
+    <!-- Dashboard Principal -->
+    <main class="px-4 md:px-6 pb-12 max-w-[1600px] mx-auto hidden" id="dashboard-content">
+        
+        <div id="indicador-filtros-graficos" class="hidden mb-4 bg-blue-50 border-l-4 border-blue-500 p-3 flex justify-between items-center shadow-sm">
+            <div class="flex items-center gap-2 text-sm text-blue-900"><span class="font-bold">Filtros Cruzados:</span> <span id="texto-filtros-graficos" class="flex flex-wrap gap-1"></span></div>
+            <button onclick="limpiarFiltrosCruzados()" class="text-xs font-bold text-red-600 hover:text-red-800 uppercase">Borrar</button>
+        </div>
+
+        <!-- KPIs Data Science -->
+        <div class="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
+            <div class="kpi-card border-t-4 border-t-blue-500">
+                <span class="tooltip-text">Suma total de matrículas de primer curso según los filtros aplicados.</span>
+                <p class="text-xs text-slate-500 font-bold uppercase">Total Matriculados</p>
+                <h3 class="text-2xl md:text-3xl font-black text-slate-800 mt-1" id="kpi-matriculados">0</h3>
+            </div>
+            <div class="kpi-card border-t-4 border-t-indigo-500">
+                <span class="tooltip-text">Cantidad de Instituciones de Educación Superior (IES) únicas.</span>
+                <p class="text-xs text-slate-500 font-bold uppercase">Instituciones (IES)</p>
+                <h3 class="text-2xl md:text-3xl font-black text-slate-800 mt-1" id="kpi-ies">0</h3>
+            </div>
+            <div class="kpi-card border-t-4 border-t-pink-500">
+                <span class="tooltip-text">Porcentaje que indica la cantidad de mujeres por cada 100 hombres matriculados. Valores mayores a 100 indican mayoría femenina.</span>
+                <p class="text-xs text-slate-500 font-bold uppercase">Paridad de Género</p>
+                <h3 class="text-2xl md:text-3xl font-black text-slate-800 mt-1" id="kpi-paridad">0</h3>
+                <p class="text-[10px] text-slate-400">Mujeres x cada 100 Hombres</p>
+            </div>
+            <div class="kpi-card border-t-4 border-t-emerald-500">
+                <span class="tooltip-text">Promedio de estudiantes nuevos por cada Institución de Educación Superior.</span>
+                <p class="text-xs text-slate-500 font-bold uppercase">Promedio x IES</p>
+                <h3 class="text-2xl md:text-3xl font-black text-slate-800 mt-1" id="kpi-promedio">0</h3>
+                <p class="text-[10px] text-slate-400">Matrículas por institución</p>
+            </div>
+            <div class="kpi-card border-t-4 border-t-orange-500">
+                <span class="tooltip-text">Porcentaje de las matrículas totales que concentran las 3 instituciones más grandes.</span>
+                <p class="text-xs text-slate-500 font-bold uppercase">Concentración (Top 3)</p>
+                <h3 class="text-2xl md:text-3xl font-black text-slate-800 mt-1" id="kpi-concentracion">0%</h3>
+                <p class="text-[10px] text-slate-400">Del mercado total</p>
+            </div>
+            <div class="kpi-card border-t-4 border-t-purple-500">
+                <span class="tooltip-text">El Núcleo Básico del Conocimiento (NBC) que abarca la mayor cantidad de matrículas.</span>
+                <p class="text-xs text-slate-500 font-bold uppercase">NBC Principal</p>
+                <h3 class="text-sm font-black text-slate-800 mt-2 truncate" id="kpi-nbc">N/A</h3>
+            </div>
+        </div>
+
+        <!-- Mapa de Coropletas y Evolución -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div class="chart-card lg:col-span-2 group p-0 overflow-hidden" id="mapa-colombia" style="height: 550px;"></div>
+            <div class="chart-card" id="grafico-evolucion" style="height: 550px;"></div>
+        </div>
+
+        <!-- Barras de Rankings -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div class="chart-card" id="grafico-instituciones" style="height: 450px;"></div>
+            <div class="chart-card" id="grafico-programas" style="height: 450px;"></div>
+        </div>
+
+        <!-- Donas Demográficas -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <div class="chart-card" id="grafico-nivel" style="height: 380px;"></div>
+            <div class="chart-card" id="grafico-metodologia" style="height: 380px;"></div>
+            <div class="chart-card" id="grafico-sexo" style="height: 380px;"></div>
+        </div>
+    </main>
+
+    <script>
+        // Variables Globales
+        let datosGlobales = []; 
+        let filtrosCruzados = {}; 
+        let geojsonCol = null;
+
+        // Fallback Coords por si la API de polígonos falla
+        const coordsDeptos = {
+            "bogota": { lat: 4.6097, lon: -74.0817 }, "antioquia": { lat: 6.2518, lon: -75.5636 }, 
+            "valle del cauca": { lat: 3.4516, lon: -76.5320 }, "atlantico": { lat: 10.9685, lon: -74.7813 }, 
+            "bolivar": { lat: 10.3910, lon: -75.4794 }, "santander": { lat: 7.1193, lon: -73.1227 }, 
+            "norte de santander": { lat: 7.8939, lon: -72.5078 }, "cundinamarca": { lat: 4.6678, lon: -74.0820 }, 
+            "boyaca": { lat: 5.5353, lon: -73.3678 }, "tolima": { lat: 4.4389, lon: -75.2322 }, 
+            "huila": { lat: 2.9273, lon: -75.2819 }, "cauca": { lat: 2.4382, lon: -76.6132 }, 
+            "narino": { lat: 1.2136, lon: -77.2811 }, "magdalena": { lat: 11.2408, lon: -74.1990 }, 
+            "cesar": { lat: 10.4631, lon: -73.2532 }, "cordoba": { lat: 8.7480, lon: -75.8814 }, 
+            "sucre": { lat: 9.3047, lon: -75.3978 }, "caldas": { lat: 5.0689, lon: -75.5174 }, 
+            "risaralda": { lat: 4.8133, lon: -75.6961 }, "quindio": { lat: 4.5339, lon: -75.6811 }, 
+            "meta": { lat: 4.1420, lon: -73.6266 }, "choco": { lat: 5.6919, lon: -76.6583 }, 
+            "la guajira": { lat: 11.5444, lon: -72.9069 }, "putumayo": { lat: 1.1511, lon: -76.6531 }, 
+            "caqueta": { lat: 1.6135, lon: -75.6040 }, "casanare": { lat: 5.3378, lon: -72.3959 }, 
+            "arauca": { lat: 7.0847, lon: -70.7591 }, "san andres": { lat: 12.5847, lon: -81.7006 }
+        };
+
+        // Función estricta para cruzar nombres (GeoJSON vs Excel)
+        function normDepto(n) {
+            if(!n) return '';
+            let str = n.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim();
+            if(str.includes("BOGOTA")) return "BOGOTA";
+            if(str.includes("VALLE")) return "VALLE DEL CAUCA";
+            if(str.includes("ANDRES") || str.includes("PROVIDENCIA")) return "SAN ANDRES";
+            if(str.includes("NARI")) return "NARINO";
+            if(str.includes("GUAJIRA")) return "LA GUAJIRA";
+            return str;
+        }
+
+        // --- 1. CARGA INICIAL (MAPA + DATOS) ---
+        window.onload = async function() {
+            // A. Intentar descargar el GeoJSON de polígonos
+            try {
+                const geoRes = await fetch('https://gist.githubusercontent.com/john-guerra/43c7656821069d00dcbc/raw/be6a6e239cd5b5b803c6e7c2ec405b793a9064dd/Colombia.geo.json');
+                if(geoRes.ok) {
+                    geojsonCol = await geoRes.json();
+                    geojsonCol.features.forEach(f => f.id = normDepto(f.properties.NOMBRE_DPT || f.properties.DPTO));
+                }
+            } catch (error) { console.warn("GeoJSON no disponible. Se usará el mapa de puntos de respaldo."); }
+
+            // B. Cargar Archivo CSV
+            // AQUÍ: Reemplaza este enlace por la URL "Raw" de tu archivo en GitHub
+            const archivoPorDefecto = 'https://raw.githubusercontent.com/TU_USUARIO/TU_REPOSITORIO/main/df_final_17.csv';
+            
+            try {
+                const response = await fetch(archivoPorDefecto);
+                if (response.ok) {
+                    const textoCsv = await response.text();
+                    Papa.parse(textoCsv, { header: true, skipEmptyLines: true, complete: res => procesarDatos(res.data) });
+                    document.getElementById('indicador-auto-load').classList.remove('hidden');
+                } else { mostrarBotonSubida(); }
+            } catch (error) { mostrarBotonSubida(); }
+        };
+
+        function mostrarBotonSubida() {
+            document.getElementById('mensaje-estado').innerHTML = `
+                <svg class="w-16 h-16 text-slate-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                <h2 class="text-xl font-bold text-slate-700">Sube tu archivo para comenzar</h2>
+                <p class="text-sm text-slate-500 mt-2">No se encontró el archivo automáticamente.</p>`;
+        }
+
+        document.getElementById('upload-file').addEventListener('change', function(evento) {
+            const archivo = evento.target.files[0];
+            if (!archivo) return;
+            const extension = archivo.name.split('.').pop().toLowerCase();
+            document.getElementById('mensaje-estado').innerHTML = `<div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-blue-600 mb-4 mx-auto"></div><p class="font-bold text-slate-700">Procesando...</p>`;
+            document.getElementById('dashboard-content').classList.add('hidden');
+            document.getElementById('panel-filtros').classList.add('hidden');
+
+            setTimeout(() => {
+                if (extension === 'csv') Papa.parse(archivo, { header: true, skipEmptyLines: true, complete: res => procesarDatos(res.data) });
+                else if (['xlsx', 'xls'].includes(extension)) {
+                    const lector = new FileReader();
+                    lector.onload = e => {
+                        const libro = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+                        procesarDatos(XLSX.utils.sheet_to_json(libro.Sheets[libro.SheetNames[0]]));
+                    };
+                    lector.readAsArrayBuffer(archivo);
+                }
+            }, 300);
+        });
+
+        // --- 2. PROCESAMIENTO ---
+        function procesarDatos(datos) {
+            datosGlobales = datos.map(fila => ({
+                programa: (fila['PROGRAMA_LIMPIO'] || 'Sin dato').trim(),
+                año: String(fila['AÑO'] || 'Sin dato').trim(),
+                nivel: (fila['NIVEL_ACADEMICO_ESTANDAR'] || 'Sin dato').trim(),
+                depto: (fila['DEPARTAMENTO_LIMPIO'] || 'Sin dato').trim(),
+                ies: (fila['INSTITUCIÓN_LIMPIO'] || 'Sin dato').trim(),
+                sexo: (fila['SEXO_ESTANDAR'] || 'Sin dato').trim(),
+                metodologia: (fila['METODOLOGÍA_LIMPIO'] || 'Sin dato').trim(),
+                nbc: (fila['NÚCLEO BÁSICO DEL CONOCIMIENTO (NBC)'] || 'Sin dato').trim(),
+                matriculados: parseInt(fila['PRIMER CURSO']) || 0
+            }));
+
+            document.getElementById('mensaje-estado').style.display = 'none';
+            document.getElementById('panel-filtros').classList.remove('hidden');
+            document.getElementById('dashboard-content').classList.remove('hidden');
+            
+            // Asegurar que los selectores inicien en TODOS antes de calcular sus opciones dinámicas
+            ['programa', 'ies', 'año', 'nivel', 'depto'].forEach(id => document.getElementById(`filtro-${id}`).value = 'TODOS');
+            
+            aplicarFiltros(); 
+        }
+
+        function toggleFiltroCruzado(tipo, valor) {
+            filtrosCruzados[tipo] === valor ? delete filtrosCruzados[tipo] : filtrosCruzados[tipo] = valor;
+            aplicarFiltros();
+        }
+        function limpiarFiltrosCruzados() { filtrosCruzados = {}; aplicarFiltros(); }
+
+        function aplicarFiltros() {
+            const f = {
+                programa: document.getElementById('filtro-programa').value,
+                ies: document.getElementById('filtro-ies').value,
+                año: document.getElementById('filtro-año').value,
+                nivel: document.getElementById('filtro-nivel').value,
+                depto: document.getElementById('filtro-depto').value
+            };
+
+            // 1. LÓGICA DE FILTROS EN CASCADA (Mutuamente dependientes)
+            const tipos = ['programa', 'ies', 'año', 'nivel', 'depto'];
+            tipos.forEach(tipoActual => {
+                const datosParciales = datosGlobales.filter(d => {
+                    let pasa = true;
+                    // Aplicar todos los selectores EXCEPTO el que estamos actualizando
+                    for (let k in f) {
+                        if (k !== tipoActual && f[k] !== 'TODOS' && d[k] !== f[k]) pasa = false;
+                    }
+                    // Aplicar también filtros cruzados de los gráficos (clics)
+                    for (let k in filtrosCruzados) {
+                        if (k !== tipoActual && d[k] !== filtrosCruzados[k]) pasa = false;
+                    }
+                    return pasa;
+                });
+
+                // Obtener opciones únicas válidas para la combinación actual
+                let unicos = [...new Set(datosParciales.map(d => d[tipoActual]))].filter(o => o !== 'Sin dato').sort();
+                if (tipoActual === 'año') unicos.reverse();
+
+                // Reconstruir el selector con las nuevas opciones
+                const select = document.getElementById(`filtro-${tipoActual}`);
+                let html = '<option value="TODOS">Todos</option>';
+                unicos.forEach(op => html += `<option value="${op}">${op}</option>`);
+                select.innerHTML = html;
+
+                // Restaurar la selección previa si sigue siendo una opción válida
+                if (f[tipoActual] !== 'TODOS' && unicos.includes(f[tipoActual])) {
+                    select.value = f[tipoActual];
+                } else {
+                    f[tipoActual] = 'TODOS'; // Si ya no es válida, forzar a 'TODOS'
+                    select.value = 'TODOS';
+                }
+            });
+
+            // 2. APLICAR FILTROS CONSOLIDADOS PARA DIBUJAR LOS GRÁFICOS
+            const datosFiltrados = datosGlobales.filter(d => {
+                let pasa = true;
+                for (let k in f) if (f[k] !== 'TODOS' && d[k] !== f[k]) pasa = false;
+                for (let k in filtrosCruzados) if (d[k] !== filtrosCruzados[k]) pasa = false;
+                return pasa;
+            });
+
+            const activos = Object.entries(filtrosCruzados).map(([k, v]) => `<span class="bg-blue-600 text-white px-2 rounded uppercase text-[10px] ml-1">${k}: ${v}</span>`);
+            const divFiltros = document.getElementById('indicador-filtros-graficos');
+            if (activos.length) { document.getElementById('texto-filtros-graficos').innerHTML = activos.join(''); divFiltros.classList.remove('hidden'); }
+            else divFiltros.classList.add('hidden');
+
+            dibujarDashboard(datosFiltrados);
+        }
+
+        function bindPlotlyClick(id, tipoFiltro, extractFn) {
+            const div = document.getElementById(id);
+            if (!div._hasClickListener) {
+                div.on('plotly_click', d => { const v = extractFn(d); if(v) toggleFiltroCruzado(tipoFiltro, v); });
+                div._hasClickListener = true;
+            }
+        }
+
+        // --- 3. DIBUJAR GRÁFICOS ---
+        function dibujarDashboard(datos) {
+            let tMatriculados = 0, hombres = 0, mujeres = 0;
+            let agg = { depto: {}, prog: {}, ies: {}, año: {}, nivel: {}, sexo: {}, metod: {}, nbc: {} };
+
+            datos.forEach(d => {
+                tMatriculados += d.matriculados;
+                if(d.sexo === 'Masculino') hombres += d.matriculados;
+                if(d.sexo === 'Femenino') mujeres += d.matriculados;
+                ['depto', 'programa', 'ies', 'año', 'nivel', 'sexo', 'metodologia', 'nbc'].forEach(k => {
+                    const prop = k==='programa'?'prog':k==='metodologia'?'metod':k;
+                    agg[prop][d[k]] = (agg[prop][d[k]] || 0) + d.matriculados;
+                });
+            });
+
+            // Actualizar KPIs
+            const numIes = Object.keys(agg.ies).filter(k => k!=='Sin dato').length;
+            document.getElementById('kpi-matriculados').innerText = tMatriculados.toLocaleString('es-CO');
+            document.getElementById('kpi-ies').innerText = numIes;
+            document.getElementById('kpi-paridad').innerText = hombres > 0 ? ((mujeres / hombres) * 100).toFixed(1) : 0;
+            document.getElementById('kpi-promedio').innerText = numIes > 0 ? Math.round(tMatriculados / numIes).toLocaleString('es-CO') : 0;
+
+            let arrIes = Object.values(agg.ies).sort((a,b)=>b-a);
+            let top3Sum = arrIes.slice(0,3).reduce((a,b)=>a+b, 0);
+            document.getElementById('kpi-concentracion').innerText = tMatriculados > 0 ? ((top3Sum / tMatriculados) * 100).toFixed(1) + '%' : '0%';
+            let topNbc = Object.entries(agg.nbc).sort((a,b)=>b[1]-a[1])[0];
+            document.getElementById('kpi-nbc').innerText = topNbc && topNbc[0] !== 'Sin dato' ? topNbc[0] : 'No disponible';
+
+            // Configuración Plotly
+            const confGen = { responsive: true, displayModeBar: false };
+            const font = { family: 'Inter, sans-serif', color: '#475569' };
+            const layout = { margin: { t: 40, b: 30, l: 30, r: 20 }, font, paper_bgcolor: 'transparent', plot_bgcolor: 'transparent' };
+            const getTop = (obj, l=10) => Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,l).reduce((a,v)=>({k:[...a.k,v[0]], v:[...a.v,v[1]]}), {k:[],v:[]});
+
+            // 1. EL MAPA DE DEPARTAMENTOS (PUNTOS SOBRE BLANCO Y NEGRO)
+            document.getElementById('mapa-colombia').innerHTML = ""; // Limpiar canvas previo
+            
+            let mapLats = [], mapLons = [], mapTxt = [], mapSize = [], mapVal = [], mapRaw = [];
+            let maxD = Math.max(...Object.values(agg.depto), 1);
+
+            // Preparar las coordenadas y tamaños de los puntos
+            Object.entries(agg.depto).forEach(([depto, cant]) => {
+                let d = normDepto(depto).toLowerCase(); 
+                if (coordsDeptos[d] && cant > 0) {
+                    mapLats.push(coordsDeptos[d].lat); mapLons.push(coordsDeptos[d].lon);
+                    mapTxt.push(`<b>${depto}</b><br>${cant.toLocaleString()} matrículas`);
+                    mapSize.push(8 + Math.sqrt(cant/maxD)*30); // Escala del punto
+                    mapVal.push(cant); mapRaw.push(depto);
+                }
+            });
+            
+            if(mapLats.length === 0) { mapLats = [4.5]; mapLons = [-73.5]; mapSize = [0]; mapVal = [0]; mapTxt = ['Sin datos']; mapRaw = ['']; }
+
+            let dataMap = [];
+            let layoutGeo = {};
+
+            if (geojsonCol) {
+                // CAPA 1: Fondo Blanco y Negro (Solo contornos de departamentos)
+                dataMap.push({
+                    type: 'choropleth',
+                    geojson: geojsonCol,
+                    locations: geojsonCol.features.map(f => f.id),
+                    z: geojsonCol.features.map(() => 1), // Asigna el mismo valor a todo para color uniforme
+                    colorscale: [[0, '#ffffff'], [1, '#ffffff']], // Relleno blanco
+                    showscale: false,
+                    hoverinfo: 'skip', // Ignorar el mouse en el fondo
+                    marker: { line: { color: '#000000', width: 0.8 } } // Contornos negros
+                });
+
+                layoutGeo = {
+                    fitbounds: "locations",
+                    visible: false, // Oculta otros países para que Colombia resalte
+                    bgcolor: 'transparent'
+                };
+            } else {
+                // Modo de emergencia si no descarga el archivo de contornos
+                layoutGeo = {
+                    scope: 'south america', center: { lat: 4.5, lon: -73.0 }, projection: { type: 'mercator', scale: 5.2 }, 
+                    showland: true, landcolor: '#ffffff', showcountries: true, countrycolor: '#000000', bgcolor: 'transparent'
+                };
+            }
+
+            // CAPA 2: Puntos de datos (Burbujas)
+            dataMap.push({
+                type: 'scattergeo', lat: mapLats, lon: mapLons, text: mapTxt, customdata: mapRaw,
+                hoverinfo: 'text', mode: 'markers',
+                marker: { size: mapSize, color: mapVal, colorscale: 'Viridis', reversescale: true, opacity: 0.9, line: { width: 1, color: '#ffffff' } }
+            });
+
+            // Dibujar ambas capas juntas
+            Plotly.newPlot('mapa-colombia', dataMap, {
+                title: { text: '<b>Densidad Geográfica (Matrículas)</b>', font: {size: 14}, x: 0.05, y: 0.95 },
+                geo: layoutGeo,
+                margin: {t:40, b:10, l:10, r:10},
+                paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', showlegend: false
+            }, confGen);
+            
+            // Evento de click adaptado para los puntos
+            bindPlotlyClick('mapa-colombia', 'depto', d => {
+                let punto = d.points.find(p => p.customdata);
+                return punto ? punto.customdata : null;
+            });
+
+            // 2. EVOLUCIÓN
+            let años = Object.keys(agg.año).sort();
+            Plotly.newPlot('grafico-evolucion', [{
+                x: años, y: años.map(a => agg.año[a]), type: 'scatter', mode: 'lines+markers',
+                line: { color: '#2563eb', width: 4, shape: 'spline' }, marker: { size: 8 },
+                fill: 'tozeroy', fillcolor: 'rgba(37, 99, 235, 0.1)'
+            }], { ...layout, margin: {l: 50, r:20, t:50, b:40}, title: { text: '<b>Evolución de Matrículas por Año</b>', font: {size: 14}, x: 0 } }, confGen);
+
+            // 3. IES
+            let tIes = getTop(agg.ies, 10);
+            Plotly.newPlot('grafico-instituciones', [{
+                type: 'bar', orientation: 'h', customdata: tIes.k.slice().reverse(),
+                y: tIes.k.slice().reverse().map(k => k.length>30?k.substring(0,27)+'...':k),
+                x: tIes.v.slice().reverse(), marker: { color: '#0ea5e9' }
+            }], { ...layout, margin:{l: 220, t:40, b:30, r:20}, title: { text: '<b>Top 10 Universidades</b>', font: {size: 14}, x: 0 } }, confGen);
+
+            // 4. PROGRAMAS
+            let tProg = getTop(agg.prog, 10);
+            Plotly.newPlot('grafico-programas', [{
+                type: 'bar', orientation: 'h', customdata: tProg.k.slice().reverse(),
+                y: tProg.k.slice().reverse().map(k => k.length>30?k.substring(0,27)+'...':k),
+                x: tProg.v.slice().reverse(), marker: { color: '#8b5cf6' }
+            }], { ...layout, margin:{l: 220, t:40, b:30, r:20}, title: { text: '<b>Top 10 Programas</b>', font: {size: 14}, x: 0 } }, confGen);
+
+            // 5. DONAS
+            const pieConf = (d, c, t) => ([{labels: Object.keys(d), values: Object.values(d), type: 'pie', hole: 0.5, textinfo: 'percent', marker:{colors:c}}]);
+            const pieLyt = (t) => ({...layout, title: {text: `<b>${t}</b>`, font:{size:14}}, legend: {orientation: 'h', y: -0.2}});
+
+            Plotly.newPlot('grafico-nivel', pieConf(agg.nivel, ['#f59e0b','#ec4899','#3b82f6']), pieLyt('Nivel Académico'), confGen);
+            Plotly.newPlot('grafico-metodologia', pieConf(agg.metod, ['#10b981','#6366f1']), pieLyt('Metodología'), confGen);
+            Plotly.newPlot('grafico-sexo', pieConf(agg.sexo, ['#3b82f6','#ec4899','#94a3b8']), pieLyt('Género'), confGen);
+
+            bindPlotlyClick('grafico-instituciones', 'ies', d => d.points[0].customdata);
+            bindPlotlyClick('grafico-programas', 'programa', d => d.points[0].customdata);
+            bindPlotlyClick('grafico-evolucion', 'año', d => String(d.points[0].x));
+            bindPlotlyClick('grafico-nivel', 'nivel', d => d.points[0].label);
+            bindPlotlyClick('grafico-metodologia', 'metodologia', d => d.points[0].label);
+            bindPlotlyClick('grafico-sexo', 'sexo', d => d.points[0].label);
+
+            setTimeout(() => window.dispatchEvent(new Event('resize')), 200);
+        }
+        
+        window.addEventListener('resize', () => {
+            const charts = ['mapa-colombia', 'grafico-evolucion', 'grafico-instituciones', 'grafico-programas', 'grafico-nivel', 'grafico-metodologia', 'grafico-sexo'];
+            charts.forEach(id => { if(document.getElementById(id).innerHTML !== "") Plotly.Plots.resize(id); });
+        });
+    </script>
+</body>
+</html>
