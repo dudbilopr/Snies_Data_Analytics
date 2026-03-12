@@ -33,7 +33,7 @@ Herramienta de visualización interactiva para explorar la oferta educativa colo
 | Área | Estado | Dataset |
 |---|---|---|
 | Radiología e Imágenes Diagnósticas | Disponible | [df_final_NEW.xlsx](df_final_NEW.xlsx) |
-| Ciencia de Datos e Inteligencia Artificial | En construcción | — |
+| Ciencia de Datos e Inteligencia Artificial | Disponible | [df_final_Ciencia_de_Datos_Afines.xlsx](df_final_Ciencia_de_Datos_Afines.xlsx) |
 | Ingeniería de Sistemas | En construcción | — |
 
 ---
@@ -67,6 +67,7 @@ Herramienta de visualización interactiva para explorar la oferta educativa colo
 Snies_Data_Analytics/
 ├── SNIES_Analytics.html   # Dashboard principal
 ├── df_final_NEW.xlsx      # Dataset Radiología e Imágenes
+├── df_final_Ciencia_de_Datos_Afines.xlsx # Dataset Ciencia de Datos y Afines
 └── README.md
 ```
 
