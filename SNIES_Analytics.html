@@ -16,19 +16,20 @@
     <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
 
     <style>
-        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; }
+        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; overflow-x: hidden; }
         
         .pbi-card { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1); border: 1px solid #f1f5f9; display: flex; flex-direction: column; overflow: hidden; position: relative; transition: all 0.2s ease-in-out; }
         .pbi-card:hover { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); border-color: #e2e8f0; }
-        .pbi-title { font-size: 0.875rem; font-weight: 600; color: #1e293b; padding: 12px 16px 0 16px; letter-spacing: -0.01em; display: flex; justify-content: space-between; align-items: center; }
+        .pbi-title { font-size: 0.875rem; font-weight: 600; color: #1e293b; padding: 12px 16px 8px 16px; letter-spacing: -0.01em; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid transparent; }
         
-        .kpi-box { padding: 12px 16px; text-align: left; }
-        .kpi-value { font-size: 1.5rem; font-weight: 700; color: #0f172a; line-height: 1.2; letter-spacing: -0.02em; margin-top: 4px; }
-        @media (min-width: 768px) { .kpi-value { font-size: 1.875rem; } .kpi-box { padding: 16px; } }
-        .kpi-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 600; margin-bottom: 2px; letter-spacing: 0.05em; }
-        .kpi-sub { font-size: 0.65rem; color: #94a3b8; margin-top: 2px; font-weight: 400; }
+        .kpi-box { padding: 16px; text-align: left; justify-content: center; }
+        .kpi-value { font-size: 1.75rem; font-weight: 700; color: #0f172a; line-height: 1.2; letter-spacing: -0.02em; margin-top: 4px; }
+        @media (min-width: 768px) { .kpi-value { font-size: 2rem; } }
+        .kpi-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 600; margin-bottom: 2px; letter-spacing: 0.05em; }
+        .kpi-sub { font-size: 0.65rem; color: #94a3b8; margin-top: 4px; font-weight: 400; }
 
-        .chart-scroll-wrapper { flex: 1; width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; position: relative; min-height: 0; min-width: 0; }
+        /* Contenedor estricto para Plotly, evita que se colapse */
+        .chart-scroll-wrapper { flex: 1 1 auto; width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; position: relative; min-height: 0; min-width: 0; display: block; padding-bottom: 5px; }
         
         select { background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px; width: 100%; outline: none; font-size: 0.8125rem; font-weight: 500; color: #334155; cursor: pointer; transition: all 0.2s; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
         select:focus { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1); }
@@ -36,7 +37,7 @@
         .dataset-selector { font-size: 0.9rem; font-weight: 700; color: #0f172a; border: 1px solid transparent; padding: 4px 10px; border-radius: 6px; background-color: #f1f5f9; cursor: pointer; transition: all 0.2s; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 8px center; background-size: 1em; padding-right: 32px; max-width: 200px; text-overflow: ellipsis; }
         @media (min-width: 768px) { .dataset-selector { font-size: 1.125rem; max-width: none; } }
 
-        .table-container { max-height: 300px; overflow-y: auto; overflow-x: auto; font-size: 0.8125rem; width: 100%; }
+        .table-container { max-height: 350px; overflow-y: auto; overflow-x: auto; font-size: 0.8125rem; width: 100%; }
         th { position: sticky; top: 0; background: #f8fafc; font-weight: 600; color: #475569; text-transform: uppercase; font-size: 0.7rem; padding: 10px; border-bottom: 2px solid #e2e8f0; z-index: 10; white-space: nowrap; }
         td { padding: 10px; border-bottom: 1px solid #f1f5f9; color: #334155; white-space: nowrap; }
         tr:hover { background-color: #f8fafc; }
@@ -47,7 +48,7 @@
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="text-slate-800 h-screen flex flex-col overflow-hidden">
+<body class="text-slate-800 min-h-screen flex flex-col">
 
     <script>
         const MIS_BASES_DE_DATOS = [
@@ -59,43 +60,45 @@
 
     <header class="bg-white border-b border-slate-200 px-3 md:px-5 py-3 flex flex-wrap gap-3 justify-between items-center shrink-0 z-20 shadow-sm">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 md:w-11 md:h-11 bg-gradient-to-br from-blue-700 to-indigo-800 rounded-xl flex items-center justify-center text-white shadow-md shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-700 to-indigo-800 rounded-xl flex items-center justify-center text-white shadow-md shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
             </div>
             <div class="flex flex-col min-w-0">
-                <p class="text-[0.6rem] md:text-[0.65rem] text-slate-500 uppercase font-bold tracking-widest mb-0.5 whitespace-nowrap overflow-hidden text-ellipsis">Centro de Inteligencia Académica</p>
+                <p class="text-[0.65rem] text-slate-500 uppercase font-bold tracking-widest mb-0.5">Centro de Inteligencia Académica</p>
                 <div class="flex items-center gap-2">
-                    <span class="text-slate-400 text-xs md:text-sm font-medium hidden md:inline">Área:</span>
+                    <span class="text-slate-400 text-xs font-medium hidden md:inline">Área:</span>
                     <select id="selector-dataset" onchange="cambiarDataset(this.value)" class="dataset-selector"></select>
                 </div>
             </div>
         </div>
         
         <div class="flex items-center">
-            <span id="indicador-carga" class="text-[0.65rem] md:text-xs text-blue-600 flex items-center gap-1.5 font-semibold animate-pulse bg-blue-50 px-2 md:px-3 py-1 md:py-1.5 rounded-full border border-blue-100 whitespace-nowrap">
-                <svg class="w-3.5 h-3.5 md:w-4 md:h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <span id="indicador-carga" class="text-[0.7rem] md:text-xs text-blue-600 flex items-center gap-1.5 font-semibold animate-pulse bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
+                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                 Conectando...
             </span>
         </div>
     </header>
 
-    <!-- Barra de Filtros -->
+    <!-- Barra de Filtros Totalmente Responsiva -->
     <div id="panel-filtros" class="bg-white border-b border-slate-200 px-3 md:px-5 py-3 shrink-0 z-10 transition-opacity duration-300 shadow-sm">
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 lg:grid-cols-12 gap-3 md:gap-4">
-            <div class="lg:col-span-2 min-w-0"><label class="block text-[0.6rem] md:text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Año</label><select id="filtro-año" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
-            <div class="lg:col-span-2 min-w-0"><label class="block text-[0.6rem] md:text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Departamento</label><select id="filtro-depto" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
-            <div class="lg:col-span-3 min-w-0"><label class="block text-[0.6rem] md:text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Institución (IES)</label><select id="filtro-ies" onchange="aplicarFiltros()"><option value="TODOS">Todas</option></select></div>
-            <div class="lg:col-span-3 min-w-0"><label class="block text-[0.6rem] md:text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Programa</label><select id="filtro-programa" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
+            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Año</label><select id="filtro-año" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
+            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Semestre</label><select id="filtro-semestre" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
+            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Departamento</label><select id="filtro-depto" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
+            <div class="min-w-0 sm:col-span-2 lg:col-span-1"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Institución (IES)</label><select id="filtro-ies" onchange="aplicarFiltros()"><option value="TODOS">Todas</option></select></div>
+            <div class="min-w-0 sm:col-span-2 lg:col-span-1"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Programa</label><select id="filtro-programa" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
+            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Sexo</label><select id="filtro-sexo" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
             
-            <div class="col-span-2 sm:col-span-3 lg:col-span-2 min-w-0">
-                <label class="block text-[0.6rem] md:text-[0.65rem] font-bold text-blue-600 uppercase mb-1 truncate">Mostrar (Gráficas)</label>
+            <div class="min-w-0 col-span-2 sm:col-span-1">
+                <label class="block text-[0.65rem] font-bold text-blue-600 uppercase mb-1 truncate">Ver Top</label>
                 <select id="filtro-limite" onchange="aplicarFiltros()" class="border-blue-300 bg-blue-50 text-blue-800 font-bold">
                     <option value="5">Top 5</option>
                     <option value="10" selected>Top 10</option>
                     <option value="20">Top 20</option>
-                    <option value="ALL">Todos (Scroll)</option>
+                    <option value="ALL">Todos</option>
                 </select>
             </div>
         </div>
@@ -103,7 +106,7 @@
         <div id="indicador-filtros-graficos" class="hidden mt-3 pt-2 border-t border-slate-100 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div class="flex items-center gap-2 flex-wrap flex-1">
                 <span class="font-bold text-blue-700 flex items-center gap-1 text-[0.7rem] md:text-xs">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 md:h-4 md:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
                     Filtros Activos:
                 </span>
                 <span id="texto-filtros-graficos" class="flex gap-1.5 flex-wrap"></span>
@@ -111,75 +114,84 @@
                     Limpiar <span class="hidden sm:inline">Visuales</span>
                 </button>
             </div>
-            <div class="text-[0.6rem] md:text-[0.65rem] text-slate-400 font-medium flex items-center gap-1 bg-slate-50 px-2 py-1 rounded border border-slate-100 w-fit">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 md:h-3.5 md:w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" /></svg>
-                Tip: Clic gráfico para filtrar
-            </div>
         </div>
     </div>
 
-    <!-- Área Principal -->
-    <main class="flex-1 overflow-y-auto overflow-x-hidden p-3 md:p-5 opacity-0 transition-opacity duration-500 w-full" id="dashboard-content">
+    <!-- Área Principal de Gráficos -->
+    <main class="flex-1 p-3 md:p-5 opacity-0 transition-opacity duration-500 w-full mx-auto max-w-[1600px]" id="dashboard-content">
         
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5 mb-4 md:mb-5 w-full">
-            <!-- KPIs ajustados para móvil (cuadrícula 2x2) y escritorio (columna) -->
-            <div class="md:col-span-2 grid grid-cols-2 md:flex md:flex-col gap-3 md:gap-4 min-w-0">
-                <div class="pbi-card kpi-box border-l-4 border-l-blue-600">
-                    <div class="kpi-label">Matrículas</div>
-                    <div class="kpi-value" id="kpi-matriculados">0</div>
-                </div>
-                <div class="pbi-card kpi-box border-l-4 border-l-indigo-500">
-                    <div class="kpi-label">Total IES</div>
-                    <div class="kpi-value" id="kpi-ies">0</div>
-                </div>
-                <div class="pbi-card kpi-box border-l-4 border-l-emerald-500">
-                    <div class="kpi-label">Precio Prom.</div>
-                    <div class="kpi-value text-emerald-600" id="kpi-precio">$ 0</div>
-                </div>
-                <div class="pbi-card kpi-box border-l-4 border-l-pink-500">
-                    <div class="kpi-label">Índice Feminidad</div>
-                    <div class="kpi-value" id="kpi-paridad">0</div>
-                    <div class="kpi-sub hidden sm:block">Mujeres x 100 Hombres</div>
-                </div>
+        <!-- KPIs Row (4 Columnas en PC, 2 en Celular) -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5 mb-4 md:mb-5">
+            <div class="pbi-card kpi-box border-l-4 border-l-blue-600">
+                <div class="kpi-label">Matrículas Totales</div>
+                <div class="kpi-value" id="kpi-matriculados">0</div>
             </div>
-
-            <div class="md:col-span-10 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 min-w-0">
-                <div class="pbi-card h-[300px] md:h-[400px] min-w-0">
-                    <div class="pbi-title">Evolución Histórica</div>
-                    <div class="chart-scroll-wrapper"><div id="grafico-evolucion" class="w-full h-full"></div></div>
-                </div>
-                
-                <div class="pbi-card h-[300px] md:h-[400px] min-w-0">
-                    <div class="pbi-title">Distribución por Departamento</div>
-                    <div class="chart-scroll-wrapper"><div id="mapa-colombia" class="w-full h-full"></div></div>
-                </div>
+            <div class="pbi-card kpi-box border-l-4 border-l-indigo-500">
+                <div class="kpi-label">Instituciones (IES)</div>
+                <div class="kpi-value" id="kpi-ies">0</div>
+            </div>
+            <div class="pbi-card kpi-box border-l-4 border-l-pink-500">
+                <div class="kpi-label">Índice Feminidad</div>
+                <div class="kpi-value" id="kpi-paridad">0</div>
+                <div class="kpi-sub">Mujeres x 100 Hombres</div>
+            </div>
+            <div class="pbi-card kpi-box border-l-4 border-l-emerald-500">
+                <div class="kpi-label">Precio Promedio</div>
+                <div class="kpi-value text-emerald-600" id="kpi-precio">$ 0</div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5 mb-4 md:mb-5 w-full">
-            <div class="md:col-span-4 pbi-card h-[300px] md:h-[350px] min-w-0">
-                <div class="pbi-title truncate">Instituciones <span class="text-[0.65rem] font-normal text-slate-400 ml-1" id="lbl-ies-count"></span></div>
-                <div class="chart-scroll-wrapper"><div id="grafico-instituciones" class="w-full"></div></div>
+        <!-- Evolución y Mapa (2 Columnas en PC, 1 en Celular) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5 mb-4 md:mb-5">
+            <!-- Altura FIJA para evitar que se colapse en celulares -->
+            <div class="pbi-card h-[350px] lg:h-[400px]">
+                <div class="pbi-title">Evolución Histórica por Año</div>
+                <div class="chart-scroll-wrapper"><div id="grafico-evolucion" class="w-full h-full"></div></div>
             </div>
-            <div class="md:col-span-4 pbi-card h-[300px] md:h-[350px] min-w-0">
-                <div class="pbi-title truncate">Programas <span class="text-[0.65rem] font-normal text-slate-400 ml-1" id="lbl-prog-count"></span></div>
-                <div class="chart-scroll-wrapper"><div id="grafico-programas" class="w-full"></div></div>
-            </div>
-            <div class="md:col-span-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 md:grid-rows-2 gap-4 md:gap-5 min-w-0">
-                <div class="pbi-card flex-1 h-[250px] sm:h-auto md:h-auto min-w-0">
-                    <div class="pbi-title">Nivel Académico</div>
-                    <div class="chart-scroll-wrapper"><div id="grafico-nivel" class="w-full h-full pb-2"></div></div>
-                </div>
-                <div class="pbi-card flex-1 h-[250px] sm:h-auto md:h-auto min-w-0">
-                    <div class="pbi-title">Metodología</div>
-                    <div class="chart-scroll-wrapper"><div id="grafico-metodologia" class="w-full h-full pb-2"></div></div>
-                </div>
+            
+            <div class="pbi-card h-[350px] lg:h-[400px]">
+                <div class="pbi-title">Densidad de Matrículas por Departamento</div>
+                <div class="chart-scroll-wrapper"><div id="mapa-colombia" class="w-full h-full"></div></div>
             </div>
         </div>
 
-        <div class="pbi-card mb-8 min-w-0 w-full">
-            <div class="pbi-title pb-3 flex justify-between items-center border-b border-slate-100">
-                <span>Detalle Analítico de Oferta</span>
+        <!-- Instituciones y Programas (2 Columnas en PC, 1 en Celular) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5 mb-4 md:mb-5">
+            <div class="pbi-card h-[350px] lg:h-[400px]">
+                <div class="pbi-title truncate">Top Instituciones (IES) <span class="text-[0.65rem] font-normal text-slate-400 ml-1" id="lbl-ies-count"></span></div>
+                <div class="chart-scroll-wrapper"><div id="grafico-instituciones" class="w-full h-full"></div></div>
+            </div>
+            <div class="pbi-card h-[350px] lg:h-[400px]">
+                <div class="pbi-title truncate">Top Programas Específicos <span class="text-[0.65rem] font-normal text-slate-400 ml-1" id="lbl-prog-count"></span></div>
+                <div class="chart-scroll-wrapper"><div id="grafico-programas" class="w-full h-full"></div></div>
+            </div>
+        </div>
+
+        <!-- Fila de Donas: Nivel, Metodología, Sexo, Semestre (4 en PC, 2 en Tablet, 1 en Celular pequeño) -->
+        <!-- La ALTURA FIJA de 320px soluciona el problema de los gráficos aplastados -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-5 mb-6 md:mb-8">
+            <div class="pbi-card h-[320px]">
+                <div class="pbi-title">Nivel Académico</div>
+                <div class="chart-scroll-wrapper"><div id="grafico-nivel" class="w-full h-full"></div></div>
+            </div>
+            <div class="pbi-card h-[320px]">
+                <div class="pbi-title">Metodología</div>
+                <div class="chart-scroll-wrapper"><div id="grafico-metodologia" class="w-full h-full"></div></div>
+            </div>
+            <div class="pbi-card h-[320px]">
+                <div class="pbi-title">Análisis de Sexo</div>
+                <div class="chart-scroll-wrapper"><div id="grafico-sexo" class="w-full h-full"></div></div>
+            </div>
+            <div class="pbi-card h-[320px]">
+                <div class="pbi-title">Semestre</div>
+                <div class="chart-scroll-wrapper"><div id="grafico-semestre" class="w-full h-full"></div></div>
+            </div>
+        </div>
+
+        <!-- Tabla de Detalles -->
+        <div class="pbi-card mb-8">
+            <div class="pbi-title pb-3 border-b border-slate-100">
+                Detalle Analítico de Oferta
             </div>
             <div class="table-container">
                 <table class="w-full text-left border-collapse">
@@ -231,22 +243,29 @@
                 opcion.value = index; opcion.text = db.nombre; selector.appendChild(opcion);
             });
 
+            // Intentar cargar mapa detallado de Colombia (si falla, usará el mapa por defecto de Plotly)
             try {
                 const geoRes = await fetch('https://gist.githubusercontent.com/john-guerra/43c7656821069d00dcbc/raw/be6a6e239cd5b5b803c6e7c2ec405b793a9064dd/Colombia.geo.json');
                 geojsonData = await geoRes.json();
-            } catch(e) { console.warn("Fallo carga de GeoJSON."); }
+            } catch(e) { console.warn("Fallo carga de GeoJSON de Colombia. Usando mapa fallback."); }
 
             cambiarDataset(0);
 
-            // Listener para redimensionar gráficos al rotar el celular o cambiar tamaño de ventana
+            // Redimensionado robusto para Plotly en Tailwind
             window.addEventListener('resize', () => {
-                const charts = ['mapa-colombia', 'grafico-evolucion', 'grafico-instituciones', 'grafico-programas', 'grafico-nivel', 'grafico-metodologia'];
-                charts.forEach(id => {
-                    const el = document.getElementById(id);
-                    if(el && el.data) Plotly.Plots.resize(el);
-                });
+                redimensionarGraficos();
             });
         };
+
+        function redimensionarGraficos() {
+            const charts = ['mapa-colombia', 'grafico-evolucion', 'grafico-instituciones', 'grafico-programas', 'grafico-nivel', 'grafico-metodologia', 'grafico-sexo', 'grafico-semestre'];
+            charts.forEach(id => {
+                const el = document.getElementById(id);
+                if(el && el.data) {
+                    Plotly.Plots.resize(el);
+                }
+            });
+        }
 
         async function cambiarDataset(indice) {
             datasetActual = MIS_BASES_DE_DATOS[indice];
@@ -256,7 +275,7 @@
             
             filtrosCruzados = {};
             document.getElementById('indicador-filtros-graficos').classList.add('hidden');
-            ['año', 'depto', 'ies', 'programa'].forEach(id => document.getElementById(`filtro-${id}`).innerHTML = '<option value="TODOS">Todos</option>');
+            ['año', 'semestre', 'depto', 'ies', 'programa', 'sexo'].forEach(id => document.getElementById(`filtro-${id}`).innerHTML = '<option value="TODOS">Todos</option>');
 
             let urlGithub = datasetActual.url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
             try {
@@ -266,38 +285,43 @@
                     const libro = XLSX.read(new Uint8Array(arrayBuffer), {type: 'array'});
                     procesarDatos(XLSX.utils.sheet_to_json(libro.Sheets[libro.SheetNames[0]], {defval: ""}));
                 } else alert("Error cargando dataset.");
-            } catch (error) { alert("Error de red."); }
+            } catch (error) { alert("Error de red cargando el archivo."); }
         }
 
         function procesarDatos(datosCrudos) {
             if (!datosCrudos || datosCrudos.length === 0) return;
-            const keys = Object.keys(datosCrudos[0]).map(k => k.trim().toUpperCase());
+            
+            // Detección EXTREMADAMENTE precisa de tus columnas basándonos en tu arreglo
+            const keys = Object.keys(datosCrudos[0]).map(k => k.trim());
+            const findKey = (searchStrings) => keys.find(k => searchStrings.some(s => k.toUpperCase().includes(s))) || keys.find(k => k.toUpperCase().includes(searchStrings[0]));
+
             const col = {
-                prog: keys.find(k => k.includes('PROGRAMA')) || keys[0],
-                año: keys.find(k => k.includes('AÑO') || k.includes('YEAR')),
-                nivel: keys.find(k => k.includes('NIVEL') || k.includes('ACADEMICO')),
-                depto: keys.find(k => k.includes('DEPARTAMENTO') || k.includes('DEPTO')),
-                ies: keys.find(k => k.includes('INSTITUCI') || k.includes('IES')),
-                sexo: keys.find(k => k.includes('SEXO') || k.includes('GENERO')),
-                metod: keys.find(k => k.includes('METODOLOG')),
-                matr: keys.find(k => k.includes('CURSO') || k.includes('MATRICULA') || k.includes('ESTUDIANTES')),
-                precio: keys.find(k => k.includes('PRECIO') || k.includes('VALOR')),
-                url: keys.find(k => k.includes('PAGINA') || k.includes('URL'))
+                prog: findKey(['PROGRAMA_LIMPIO', 'PROGRAMA']),
+                año: findKey(['AÑO', 'YEAR']),
+                semestre: findKey(['SEMESTRE']),
+                nivel: findKey(['NIVEL_ACADEMICO_ESTANDAR', 'NIVEL']),
+                depto: findKey(['DEPARTAMENTO_LIMPIO', 'DEPARTAMENTO']),
+                ies: findKey(['INSTITUCIÓN_LIMPIO', 'INSTITUCI']),
+                sexo: findKey(['SEXO_ESTANDAR', 'SEXO', 'GENERO']),
+                metod: findKey(['METODOLOGÍA_LIMPIO', 'METODOLOG']),
+                matr: findKey(['PRIMER CURSO', 'MATRICULA']),
+                precio: findKey(['PRECIO', 'VALOR']),
+                url: findKey(['LINK_PROGRAMA', 'LINK', 'URL'])
             };
 
             datosGlobales = datosCrudos.map(f => {
-                let orig = {}; for(let k in f) orig[k.trim().toUpperCase()] = f[k];
                 return {
-                    programa: orig[col.prog] ? String(orig[col.prog]).trim() : 'Sin dato',
-                    año: orig[col.año] ? String(orig[col.año]).trim() : 'Sin dato',
-                    nivel: orig[col.nivel] ? String(orig[col.nivel]).trim() : 'Sin dato',
-                    depto: orig[col.depto] ? String(orig[col.depto]).trim() : 'Sin dato',
-                    ies: orig[col.ies] ? String(orig[col.ies]).trim() : 'Sin dato',
-                    sexo: orig[col.sexo] ? String(orig[col.sexo]).trim() : 'Sin dato',
-                    metodologia: orig[col.metod] ? String(orig[col.metod]).trim() : 'Sin dato',
-                    matriculados: parseInt(orig[col.matr]) || 0,
-                    precio: col.precio && orig[col.precio] ? parseFloat(String(orig[col.precio]).replace(/[^0-9.-]+/g,"")) : 0,
-                    url: col.url && orig[col.url] ? String(orig[col.url]).trim() : ''
+                    programa: col.prog && f[col.prog] ? String(f[col.prog]).trim() : 'Sin dato',
+                    año: col.año && f[col.año] ? String(f[col.año]).trim() : 'Sin dato',
+                    semestre: col.semestre && f[col.semestre] ? String(f[col.semestre]).trim() : 'Sin dato',
+                    nivel: col.nivel && f[col.nivel] ? String(f[col.nivel]).trim() : 'Sin dato',
+                    depto: col.depto && f[col.depto] ? String(f[col.depto]).trim() : 'Sin dato',
+                    ies: col.ies && f[col.ies] ? String(f[col.ies]).trim() : 'Sin dato',
+                    sexo: col.sexo && f[col.sexo] ? String(f[col.sexo]).trim() : 'Sin dato',
+                    metodologia: col.metod && f[col.metod] ? String(f[col.metod]).trim() : 'Sin dato',
+                    matriculados: col.matr ? (parseInt(f[col.matr]) || 0) : 0,
+                    precio: col.precio && f[col.precio] ? parseFloat(String(f[col.precio]).replace(/[^0-9.-]+/g,"")) : 0,
+                    url: col.url && f[col.url] ? String(f[col.url]).trim() : ''
                 };
             });
 
@@ -305,8 +329,10 @@
             document.getElementById('dashboard-content').classList.remove('opacity-0');
             document.getElementById('dashboard-content').classList.add('opacity-100');
             
-            // Pequeño delay para asegurar que los divs se expandan antes de dibujar en móvil
-            setTimeout(() => aplicarFiltros(), 50); 
+            aplicarFiltros();
+            
+            // Disparar evento de resize mágico tras la animación de opacidad para curar bugs de Plotly
+            setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 600);
         }
 
         function toggleFiltroCruzado(tipo, valor, isMulti) {
@@ -329,12 +355,14 @@
         function aplicarFiltros() {
             const f = {
                 año: document.getElementById('filtro-año').value,
+                semestre: document.getElementById('filtro-semestre').value,
                 depto: document.getElementById('filtro-depto').value,
                 ies: document.getElementById('filtro-ies').value,
-                programa: document.getElementById('filtro-programa').value
+                programa: document.getElementById('filtro-programa').value,
+                sexo: document.getElementById('filtro-sexo').value
             };
 
-            const tipos = ['año', 'depto', 'ies', 'programa'];
+            const tipos = ['año', 'semestre', 'depto', 'ies', 'programa', 'sexo'];
             tipos.forEach(tipoActual => {
                 const datosParciales = datosGlobales.filter(d => {
                     let pasa = true;
@@ -343,7 +371,7 @@
                     return pasa;
                 });
                 let unicos = [...new Set(datosParciales.map(d => d[tipoActual]))].filter(o => o !== 'Sin dato').sort();
-                if (tipoActual === 'año') unicos.reverse();
+                if (tipoActual === 'año' || tipoActual === 'semestre') unicos.reverse(); 
                 const select = document.getElementById(`filtro-${tipoActual}`);
                 let html = '<option value="TODOS">Todos</option>';
                 unicos.forEach(op => html += `<option value="${op}">${op}</option>`);
@@ -362,8 +390,8 @@
             let activosHTML = [];
             Object.entries(filtrosCruzados).forEach(([k, valores]) => {
                 if (valores.length > 0) {
-                    let txt = valores.length <= 2 ? valores.join(', ') : `${valores.length} seleccionados`;
-                    activosHTML.push(`<span class="bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 rounded font-medium shadow-sm text-[0.65rem] md:text-[0.7rem]">${k.toUpperCase()}: ${txt}</span>`);
+                    let txt = valores.length <= 2 ? valores.join(', ') : `${valores.length} selec.`;
+                    activosHTML.push(`<span class="bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 rounded font-medium shadow-sm text-[0.7rem]">${k.toUpperCase()}: ${txt}</span>`);
                 }
             });
 
@@ -385,15 +413,20 @@
 
         function dibujarDashboard(datos) {
             let tMatriculados = 0, hombres = 0, mujeres = 0, sumPrecio = 0, countPrecio = 0;
-            let agg = { depto: {}, prog: {}, ies: {}, año: {}, nivel: {}, sexo: {}, metod: {} };
+            let agg = { depto: {}, prog: {}, ies: {}, año: {}, semestre: {}, nivel: {}, sexo: {}, metod: {} };
             let datosTabla = {};
 
             datos.forEach(d => {
                 tMatriculados += d.matriculados;
-                if(d.sexo === 'Masculino') hombres += d.matriculados;
-                if(d.sexo === 'Femenino') mujeres += d.matriculados;
-                if(d.precio > 0) { sumPrecio += d.precio; countPrecio++; }
-                ['depto', 'programa', 'ies', 'año', 'nivel', 'sexo', 'metodologia'].forEach(k => {
+                
+                // Cálculo robusto de género
+                let s = d.sexo.toUpperCase();
+                if(s.includes('MASC') || s === 'HOMBRE' || s === 'M') hombres += d.matriculados;
+                if(s.includes('FEM') || s === 'MUJER' || s === 'F') mujeres += d.matriculados;
+                
+                if(d.precio > 0 && !isNaN(d.precio)) { sumPrecio += d.precio; countPrecio++; }
+                
+                ['depto', 'programa', 'ies', 'año', 'semestre', 'nivel', 'sexo', 'metodologia'].forEach(k => {
                     const prop = k==='programa'?'prog':k==='metodologia'?'metod':k;
                     agg[prop][d[k]] = (agg[prop][d[k]] || 0) + d.matriculados;
                 });
@@ -411,14 +444,25 @@
             let htmlTabla = Object.values(datosTabla).sort((a,b) => b.matr - a.matr).slice(0, 50).map(row => `
                 <tr><td class="font-medium text-[0.75rem] max-w-[150px] truncate" title="${row.ies}">${row.ies}</td><td class="text-[0.75rem] max-w-[150px] truncate" title="${row.prog}">${row.prog}</td><td class="text-[0.75rem]">${row.depto}</td><td class="text-right font-bold text-[0.75rem]">${row.matr.toLocaleString()}</td><td class="text-right text-[0.75rem] text-emerald-600">${row.precio>0?'$'+row.precio.toLocaleString('es-CO'):'-'}</td><td class="text-center">${row.url?`<a href="${row.url.startsWith('http')?row.url:'https://'+row.url}" target="_blank" class="text-blue-600 font-bold text-[0.7rem]">Ver</a>`:'-'}</td></tr>
             `).join('');
-            document.getElementById('tabla-detalles').innerHTML = htmlTabla || '<tr><td colspan="6" class="text-center py-4">No hay datos</td></tr>';
+            document.getElementById('tabla-detalles').innerHTML = htmlTabla || '<tr><td colspan="6" class="text-center py-4 text-slate-500">No hay datos disponibles para esta selección</td></tr>';
 
-            const fontStyle = { family: 'Inter', color: '#475569', size: window.innerWidth < 768 ? 9 : 10 };
+            const isMobile = window.innerWidth < 768;
+            const fontStyle = { family: 'Inter', color: '#475569', size: isMobile ? 9 : 11 };
             const confGen = { responsive: true, displayModeBar: false };
-            const layout = { margin: { t: 10, b: 30, l: 30, r: 20 }, font: fontStyle, paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', xaxis: { showgrid: false, zeroline: false }, yaxis: { showgrid: true, gridcolor: '#f1f5f9', zeroline: false, automargin: true } };
+            
+            // Layout global mejorado (márgenes automáticos ajustados)
+            const layout = { 
+                margin: { t: 20, b: 30, l: 10, r: 10 }, 
+                font: fontStyle, 
+                paper_bgcolor: 'transparent', 
+                plot_bgcolor: 'transparent', 
+                autosize: true,
+                xaxis: { showgrid: false, zeroline: false }, 
+                yaxis: { showgrid: true, gridcolor: '#f1f5f9', zeroline: false, automargin: true } 
+            };
             
             let limitVal = document.getElementById('filtro-limite').value;
-            let numLimit = limitVal === 'ALL' ? 9999 : parseInt(limitVal);
+            let numLimit = limitVal === 'ALL' ? 50 : parseInt(limitVal); // Tope max 50 visual para barras
 
             const getTop = (obj, limit) => {
                 let sorted = Object.entries(obj).sort((a,b)=>b[1]-a[1]);
@@ -426,8 +470,8 @@
                 return sliced.reduce((a,v)=>({k:[...a.k,v[0]], v:[...a.v,v[1]]}), {k:[],v:[], total: sorted.length});
             };
 
-            // 1. MAPA NATIVO
-            let mapLats = [], mapLons = [], mapTxt = [], mapSize = [], mapVal = [], mapRaw = [];
+            // 1. MAPA (Con fallback infalible)
+            let mapLats = [], mapLons = [], mapTxt = [], mapSize = [], mapRaw = [];
             let maxD = Math.max(...Object.values(agg.depto), 1);
             
             Object.entries(agg.depto).forEach(([depto, cant]) => {
@@ -435,19 +479,19 @@
                 if (coordsDeptos[d] && cant > 0) {
                     mapLats.push(coordsDeptos[d].lat); mapLons.push(coordsDeptos[d].lon);
                     mapTxt.push(`<b>${depto}</b><br>${cant.toLocaleString()} matr.`);
-                    mapSize.push((window.innerWidth < 768 ? 6 : 10) + Math.sqrt(cant/maxD)*20); 
-                    mapVal.push(cant); mapRaw.push(depto);
+                    mapSize.push((isMobile ? 8 : 12) + Math.sqrt(cant/maxD)*25); 
+                    mapRaw.push(depto);
                 }
             });
 
             const mapTraces = [];
             if (geojsonData) {
                 const allDeptNames = geojsonData.features.map(f => f.properties.NOMBRE_DPT);
-                mapTraces.push({ type: 'choropleth', geojson: geojsonData, locations: allDeptNames, featureidkey: 'properties.NOMBRE_DPT', z: allDeptNames.map(() => 1), colorscale: [[0, '#e2e8f0'], [1, '#e2e8f0']], showscale: false, marker: { line: { color: '#ffffff', width: 1 } }, hoverinfo: 'none' });
+                mapTraces.push({ type: 'choropleth', geojson: geojsonData, locations: allDeptNames, featureidkey: 'properties.NOMBRE_DPT', z: allDeptNames.map(() => 1), colorscale: [[0, '#f8fafc'], [1, '#f8fafc']], showscale: false, marker: { line: { color: '#cbd5e1', width: 1 } }, hoverinfo: 'none' });
             }
-            mapTraces.push({ type: 'scattergeo', lat: mapLats, lon: mapLons, text: mapTxt, customdata: mapRaw, hoverinfo: 'text', mode: 'markers', marker: { size: mapSize, color: '#3b82f6', opacity: 0.85, line: { width: 1, color: '#1e3a8a' } } });
+            mapTraces.push({ type: 'scattergeo', lat: mapLats, lon: mapLons, text: mapTxt, customdata: mapRaw, hoverinfo: 'text', mode: 'markers', marker: { size: mapSize, color: '#2563eb', opacity: 0.85, line: { width: 1, color: '#1e40af' } } });
 
-            const mapLayout = { ...layout, margin: {t:0, b:0, l:0, r:0}, showlegend: false, geo: geojsonData ? { fitbounds: 'locations', visible: false, bgcolor: 'transparent' } : { scope: 'south america', center: { lat: 4.5, lon: -73.0 }, projection: { type: 'mercator', scale: window.innerWidth < 768 ? 3.5 : 4.5 }, showland: true, landcolor: '#e2e8f0', showcountries: true, countrycolor: '#ffffff', bgcolor: 'transparent' } };
+            const mapLayout = { ...layout, margin: {t:0, b:0, l:0, r:0}, showlegend: false, geo: geojsonData ? { fitbounds: 'locations', visible: false, bgcolor: 'transparent' } : { scope: 'south america', center: { lat: 4.5, lon: -73.0 }, projection: { type: 'mercator', scale: isMobile ? 3.5 : 4.5 }, showland: true, landcolor: '#f8fafc', showcountries: true, countrycolor: '#e2e8f0', bgcolor: 'transparent' } };
 
             Plotly.newPlot('mapa-colombia', mapTraces, mapLayout, confGen);
             bindPlotlyClick('mapa-colombia', 'depto', d => { const pt = d.points[0]; return pt.data.type === 'scattergeo' ? pt.customdata : null; });
@@ -455,40 +499,47 @@
             // 2. EVOLUCIÓN
             let años = Object.keys(agg.año).sort();
             let valsAños = años.map(a => agg.año[a]);
-            Plotly.newPlot('grafico-evolucion', [{ x: años, y: valsAños, type: 'scatter', mode: 'lines+markers+text', text: valsAños.map(v => v.toLocaleString()), textposition: 'top center', textfont: { weight: 600, color: '#1e293b', size: window.innerWidth < 768 ? 8 : 10 }, line: { color: '#2563eb', width: 2.5 }, marker: { size: 6 }, fill: 'tozeroy', fillcolor: 'rgba(37, 99, 235, 0.1)' }], { ...layout, margin: {l: window.innerWidth < 768 ? 20 : 40, r:20, t:20, b:30}, yaxis: { range: [0, Math.max(...valsAños)*1.2], showticklabels: window.innerWidth >= 768 } }, confGen);
+            Plotly.newPlot('grafico-evolucion', [{ x: años, y: valsAños, type: 'scatter', mode: 'lines+markers+text', text: valsAños.map(v => v.toLocaleString()), textposition: 'top center', textfont: { weight: 700, color: '#0f172a', size: isMobile ? 10 : 12 }, line: { color: '#3b82f6', width: 3 }, marker: { size: 8 }, fill: 'tozeroy', fillcolor: 'rgba(59, 130, 246, 0.15)' }], { ...layout, margin: {l: isMobile ? 30 : 50, r:20, t:30, b:40}, yaxis: { range: [0, Math.max(...valsAños)*1.25], showticklabels: true } }, confGen);
             bindPlotlyClick('grafico-evolucion', 'año', d => String(d.points[0].x));
 
-            // 3. INSTITUCIONES
+            // 3. INSTITUCIONES (BARRAS) - Altura dinámica dentro del contenedor scrolleable
             let tIes = getTop(agg.ies, numLimit);
-            document.getElementById('lbl-ies-count').innerText = limitVal === 'ALL' ? `(${tIes.total})` : `(${tIes.k.length})`;
-            const altoIes = Math.max(280, tIes.k.length * (window.innerWidth < 768 ? 40 : 35)); // Mas espacio en movil para touch
+            document.getElementById('lbl-ies-count').innerText = `(${tIes.k.length})`;
+            // Si hay muchos datos, agrandamos el div interno para que se haga scroll vertical
+            const altoIes = Math.max(isMobile ? 300 : 350, tIes.k.length * 35);
             document.getElementById('grafico-instituciones').style.height = `${altoIes}px`;
+            const truncar = str => isMobile && str.length > 25 ? str.substring(0, 23) + '...' : str;
             
-            // Truncar textos largos para móviles
-            const truncar = str => window.innerWidth < 768 && str.length > 20 ? str.substring(0, 18) + '...' : str;
-            
-            Plotly.newPlot('grafico-instituciones', [{ type: 'bar', orientation: 'h', customdata: tIes.k.slice().reverse(), y: tIes.k.slice().reverse().map(truncar), x: tIes.v.slice().reverse(), text: tIes.v.slice().reverse().map(v => v.toLocaleString()), textposition: 'auto', marker: { color: '#0ea5e9' } }], { ...layout, margin:{l: 10, t:10, b:20, r:20}, yaxis: { automargin: true } }, confGen); 
+            Plotly.newPlot('grafico-instituciones', [{ type: 'bar', orientation: 'h', customdata: tIes.k.slice().reverse(), y: tIes.k.slice().reverse().map(truncar), x: tIes.v.slice().reverse(), text: tIes.v.slice().reverse().map(v => v.toLocaleString()), textposition: 'auto', marker: { color: '#0ea5e9' } }], { ...layout, margin:{l: 10, t:10, b:30, r:30}, yaxis: { automargin: true } }, confGen); 
             bindPlotlyClick('grafico-instituciones', 'ies', d => d.points[0].customdata);
 
-            // 4. PROGRAMAS
+            // 4. PROGRAMAS (BARRAS)
             let tProg = getTop(agg.prog, numLimit);
-            document.getElementById('lbl-prog-count').innerText = limitVal === 'ALL' ? `(${tProg.total})` : `(${tProg.k.length})`;
-            const altoProg = Math.max(280, tProg.k.length * (window.innerWidth < 768 ? 40 : 35));
+            document.getElementById('lbl-prog-count').innerText = `(${tProg.k.length})`;
+            const altoProg = Math.max(isMobile ? 300 : 350, tProg.k.length * 35);
             document.getElementById('grafico-programas').style.height = `${altoProg}px`;
-            Plotly.newPlot('grafico-programas', [{ type: 'bar', orientation: 'h', customdata: tProg.k.slice().reverse(), y: tProg.k.slice().reverse().map(truncar), x: tProg.v.slice().reverse(), text: tProg.v.slice().reverse().map(v => v.toLocaleString()), textposition: 'auto', marker: { color: '#8b5cf6' } }], { ...layout, margin:{l: 10, t:10, b:20, r:20}, yaxis: { automargin: true } }, confGen);
+            Plotly.newPlot('grafico-programas', [{ type: 'bar', orientation: 'h', customdata: tProg.k.slice().reverse(), y: tProg.k.slice().reverse().map(truncar), x: tProg.v.slice().reverse(), text: tProg.v.slice().reverse().map(v => v.toLocaleString()), textposition: 'auto', marker: { color: '#8b5cf6' } }], { ...layout, margin:{l: 10, t:10, b:30, r:30}, yaxis: { automargin: true } }, confGen);
             bindPlotlyClick('grafico-programas', 'programa', d => d.points[0].customdata);
 
-            // 5. DONAS (Ajustadas para celular con leyenda horizontal abajo)
+            // 5. GRÁFICOS CIRCULARES (Donas) - Ajustados para encajar perfecto en sus cajas de 320px
             const donutLyt = { 
-                ...layout, margin: {t: 10, b: window.innerWidth < 768 ? 40 : 10, l:10, r:10}, showlegend: true, 
-                legend: window.innerWidth < 768 
-                    ? { orientation: 'h', x: 0.5, y: -0.2, xanchor: 'center', yanchor: 'top', font: {size: 8} } 
-                    : { orientation: 'v', x: 1, y: 0.5 }
+                ...layout, 
+                margin: {t: 10, b: 20, l: 10, r: 10}, 
+                showlegend: true, 
+                legend: { orientation: 'h', x: 0.5, y: -0.1, xanchor: 'center', yanchor: 'top', font: {size: 10} }
             };
-            Plotly.newPlot('grafico-nivel', [{ labels: Object.keys(agg.nivel), values: Object.values(agg.nivel), type: 'pie', hole: 0.65, textinfo: 'percent', textposition: 'inside', marker:{colors:['#f59e0b','#ec4899','#3b82f6', '#10b981']} }], donutLyt, confGen);
+
+            Plotly.newPlot('grafico-nivel', [{ labels: Object.keys(agg.nivel), values: Object.values(agg.nivel), type: 'pie', hole: 0.6, textinfo: 'percent', textposition: 'inside', marker:{colors:['#f59e0b','#ec4899','#3b82f6', '#10b981']} }], donutLyt, confGen);
             bindPlotlyClick('grafico-nivel', 'nivel', d => d.points[0].label);
-            Plotly.newPlot('grafico-metodologia', [{ labels: Object.keys(agg.metod), values: Object.values(agg.metod), type: 'pie', hole: 0.65, textinfo: 'percent', textposition: 'inside', marker:{colors:['#10b981','#6366f1', '#f43f5e']} }], donutLyt, confGen);
+
+            Plotly.newPlot('grafico-metodologia', [{ labels: Object.keys(agg.metod), values: Object.values(agg.metod), type: 'pie', hole: 0.6, textinfo: 'percent', textposition: 'inside', marker:{colors:['#10b981','#6366f1', '#f43f5e']} }], donutLyt, confGen);
             bindPlotlyClick('grafico-metodologia', 'metodologia', d => d.points[0].label);
+
+            Plotly.newPlot('grafico-sexo', [{ labels: Object.keys(agg.sexo), values: Object.values(agg.sexo), type: 'pie', hole: 0.6, textinfo: 'percent', textposition: 'inside', marker:{colors:['#ec4899', '#3b82f6', '#94a3b8']} }], donutLyt, confGen);
+            bindPlotlyClick('grafico-sexo', 'sexo', d => d.points[0].label);
+
+            Plotly.newPlot('grafico-semestre', [{ labels: Object.keys(agg.semestre), values: Object.values(agg.semestre), type: 'pie', hole: 0.6, textinfo: 'percent', textposition: 'inside', marker:{colors:['#8b5cf6', '#f59e0b', '#14b8a6', '#06b6d4', '#f43f5e']} }], donutLyt, confGen);
+            bindPlotlyClick('grafico-semestre', 'semestre', d => d.points[0].label);
         }
     </script>
 </body>
