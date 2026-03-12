@@ -7,51 +7,180 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- Plotly -->
     <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
 
     <style>
-        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; overflow-x: hidden; display: flex; flex-direction: column; min-height: 100vh; }
+        /* --- BASE Y TIPOGRAFÍA --- */
+        body { 
+            background-color: #f8fafc; 
+            font-family: 'Inter', sans-serif; 
+            overflow-x: hidden; 
+            display: flex; 
+            flex-direction: column; 
+            min-height: 100vh; 
+            /* Esto hace que las fuentes se vean súper nítidas (Estilo Mac/iOS) */
+            -webkit-font-smoothing: antialiased; 
+            -moz-osx-font-smoothing: grayscale; 
+        }
         
-        .pbi-card { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1); border: 1px solid #f1f5f9; display: flex; flex-direction: column; overflow: hidden; position: relative; transition: all 0.2s ease-in-out; }
-        .pbi-card:hover { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); border-color: #e2e8f0; }
-        .pbi-title { font-size: 0.875rem; font-weight: 600; color: #1e293b; padding: 12px 16px 8px 16px; letter-spacing: -0.01em; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid transparent; gap: 8px; }
+        /* --- TARJETAS (CARDS) --- */
+        .pbi-card { 
+            background: #ffffff; 
+            border-radius: 12px; /* Un poco más redondo para un look moderno */
+            border: 1px solid #e2e8f0; /* Borde más sutil */
+            /* Sombra más elegante y difuminada */
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02); 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+            position: relative; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .pbi-card:hover { 
+            /* Sombra que da sensación de "flotar" al pasar el mouse */
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04); 
+            border-color: #cbd5e1; 
+            transform: translateY(-1px);
+        }
         
-        .kpi-box { padding: 16px; text-align: left; justify-content: center; }
-        .kpi-value { font-size: 1.75rem; font-weight: 700; color: #0f172a; line-height: 1.2; letter-spacing: -0.02em; margin-top: 4px; }
-        @media (min-width: 768px) { .kpi-value { font-size: 2rem; } }
-        .kpi-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 600; margin-bottom: 2px; letter-spacing: 0.05em; }
-        .kpi-sub { font-size: 0.65rem; color: #94a3b8; margin-top: 4px; font-weight: 400; }
+        .pbi-title { 
+            font-size: 0.9rem; 
+            font-weight: 600; 
+            color: #1e293b; 
+            padding: 14px 18px 10px 18px; 
+            letter-spacing: -0.01em; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid #f1f5f9; /* Separa el título del contenido */
+            gap: 8px; 
+        }
+        
+        /* --- KPIs --- */
+        .kpi-box { padding: 18px; text-align: left; justify-content: center; }
+        .kpi-value { 
+            font-size: 1.85rem; 
+            font-weight: 800; /* Extra bold para que el número impacte */
+            color: #0f172a; 
+            line-height: 1.1; 
+            letter-spacing: -0.03em; /* Números un poco más juntos */
+            margin-top: 6px; 
+        }
+        @media (min-width: 768px) { .kpi-value { font-size: 2.25rem; } }
+        
+        .kpi-label { 
+            font-size: 0.75rem; 
+            color: #64748b; 
+            text-transform: uppercase; 
+            font-weight: 700; 
+            margin-bottom: 2px; 
+            letter-spacing: 0.08em; /* Más espacio entre letras en mayúsculas */
+        }
+        .kpi-sub { font-size: 0.7rem; color: #94a3b8; margin-top: 6px; font-weight: 500; }
 
         .chart-scroll-wrapper { flex: 1 1 auto; width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; position: relative; min-height: 0; min-width: 0; display: block; padding-bottom: 5px; }
         
-        select { background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px; width: 100%; outline: none; font-size: 0.8125rem; font-weight: 500; color: #334155; cursor: pointer; transition: all 0.2s; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
-        select:focus { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1); }
+        /* --- CONTROLES Y SELECTORES --- */
+        select { 
+            background-color: #ffffff; 
+            border: 1px solid #cbd5e1; 
+            border-radius: 8px; 
+            padding: 8px 12px; 
+            width: 100%; 
+            outline: none; 
+            font-size: 0.85rem; 
+            font-weight: 500; 
+            color: #334155; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            text-overflow: ellipsis; 
+            white-space: nowrap; 
+            overflow: hidden; 
+        }
+        select:hover { border-color: #94a3b8; }
+        select:focus { 
+            border-color: #3b82f6; 
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); 
+        }
         
-        .dataset-selector { font-size: 0.9rem; font-weight: 700; color: #0f172a; border: 1px solid transparent; padding: 4px 10px; border-radius: 6px; background-color: #f1f5f9; cursor: pointer; transition: all 0.2s; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 8px center; background-size: 1em; padding-right: 32px; max-width: 200px; text-overflow: ellipsis; }
-        @media (min-width: 768px) { .dataset-selector { font-size: 1.125rem; max-width: none; } }
+        .dataset-selector { 
+            font-size: 0.95rem; 
+            font-weight: 700; 
+            color: #0f172a; 
+            border: 1px solid transparent; 
+            padding: 6px 12px; 
+            border-radius: 8px; 
+            background-color: #f1f5f9; 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            appearance: none; 
+            -webkit-appearance: none; 
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); 
+            background-repeat: no-repeat; 
+            background-position: right 10px center; 
+            background-size: 1.1em; 
+            padding-right: 36px; 
+            max-width: 200px; 
+            text-overflow: ellipsis; 
+        }
+        .dataset-selector:hover { background-color: #e2e8f0; }
+        @media (min-width: 768px) { .dataset-selector { font-size: 1.25rem; max-width: none; } }
 
-        .viz-selector { border: 1px solid #e2e8f0; border-radius: 4px; padding: 2px 6px; font-size: 0.7rem; font-weight: 500; background: #f8fafc; color: #475569; width: auto; min-width: 120px; }
+        .viz-selector { 
+            border: 1px solid #e2e8f0; 
+            border-radius: 6px; 
+            padding: 4px 8px; 
+            font-size: 0.75rem; 
+            font-weight: 600; 
+            background: #f8fafc; 
+            color: #475569; 
+            width: auto; 
+            min-width: 120px; 
+        }
         .viz-selector:focus { border-color: #94a3b8; box-shadow: none; }
 
-        .table-container { max-height: 350px; overflow-y: auto; overflow-x: auto; font-size: 0.8125rem; width: 100%; }
-        th { position: sticky; top: 0; background: #f8fafc; font-weight: 600; color: #475569; text-transform: uppercase; font-size: 0.7rem; padding: 10px; border-bottom: 2px solid #e2e8f0; z-index: 10; white-space: nowrap; }
-        td { padding: 10px; border-bottom: 1px solid #f1f5f9; color: #334155; white-space: nowrap; }
-        tr:hover { background-color: #f8fafc; }
+        /* --- TABLAS (DATAGRID) --- */
+        .table-container { max-height: 350px; overflow-y: auto; overflow-x: auto; font-size: 0.85rem; width: 100%; border-radius: 0 0 12px 12px; }
+        th { 
+            position: sticky; 
+            top: 0; 
+            background: #f8fafc; 
+            font-weight: 700; 
+            color: #475569; 
+            text-transform: uppercase; 
+            font-size: 0.75rem; 
+            padding: 12px 16px; 
+            border-bottom: 2px solid #e2e8f0; 
+            z-index: 10; 
+            white-space: nowrap; 
+            letter-spacing: 0.05em;
+            /* Sutil sombra bajo el header al hacer scroll */
+            box-shadow: 0 1px 2px 0 rgba(0,0,0,0.02);
+        }
+        td { 
+            padding: 12px 16px; 
+            border-bottom: 1px solid #f1f5f9; 
+            color: #334155; 
+            white-space: nowrap; 
+            font-weight: 500;
+        }
+        tr:hover td { background-color: #f8fafc; color: #0f172a; }
         
+        /* --- SCROLLBARS (INVISIBLES PERO ELEGANTES) --- */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
-        .footer-rights { background-color: #1e293b; color: #94a3b8; font-size: 0.75rem; padding: 16px 20px; text-align: center; margin-top: auto; }
-        .footer-rights a { color: #38bdf8; text-decoration: none; font-weight: 500; }
-        .footer-rights a:hover { text-decoration: underline; color: #7dd3fc; }
+        /* --- FOOTER --- */
+        .footer-rights { background-color: #0f172a; color: #94a3b8; font-size: 0.8rem; padding: 20px; text-align: center; margin-top: auto; font-weight: 400; }
+        .footer-rights a { color: #38bdf8; text-decoration: none; font-weight: 600; transition: color 0.2s; }
+        .footer-rights a:hover { color: #7dd3fc; }
     </style>
 </head>
 <body class="text-slate-800">
@@ -72,7 +201,7 @@
                 </svg>
             </div>
             <div class="flex flex-col min-w-0">
-                <p class="text-[0.65rem] text-slate-500 uppercase font-bold tracking-widest mb-0.5">Centro de Inteligencia Académica</p>
+                <p class="text-[0.65rem] text-slate-500 uppercase font-bold tracking-widest mb-0.5">SNIES Analytics</p>
                 <div class="flex items-center gap-2">
                     <span class="text-slate-400 text-xs font-medium hidden md:inline">Área:</span>
                     <select id="selector-dataset" onchange="cambiarDataset(this.value)" class="dataset-selector"></select>
@@ -122,33 +251,34 @@
         </div>
     </div>
 
-    <main class="flex-1 p-3 md:p-5 opacity-0 transition-opacity duration-500 w-full mx-auto max-w-[1600px] pb-10" id="dashboard-content">
+<main class="flex-1 p-3 md:p-6 lg:p-8 opacity-0 transition-opacity duration-700 ease-in-out w-full mx-auto max-w-[1600px] pb-12" id="dashboard-content">
         
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5 mb-4 md:mb-5">
-            <div class="pbi-card kpi-box border-l-4 border-l-blue-600">
-                <div class="kpi-label">Matrículas Totales</div>
-                <div class="kpi-value" id="kpi-matriculados">0</div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-5 md:mb-6">
+            <div class="pbi-card kpi-box border-l-[5px] border-l-blue-500 bg-gradient-to-br from-blue-50/40 to-transparent">
+                <div class="kpi-label text-blue-600">Matrículas Totales</div>
+                <div class="kpi-value text-slate-900" id="kpi-matriculados">0</div>
             </div>
-            <div class="pbi-card kpi-box border-l-4 border-l-indigo-500">
-                <div class="kpi-label">Instituciones (IES)</div>
-                <div class="kpi-value" id="kpi-ies">0</div>
+            <div class="pbi-card kpi-box border-l-[5px] border-l-indigo-500 bg-gradient-to-br from-indigo-50/40 to-transparent">
+                <div class="kpi-label text-indigo-600">Instituciones (IES)</div>
+                <div class="kpi-value text-slate-900" id="kpi-ies">0</div>
             </div>
-            <div class="pbi-card kpi-box border-l-4 border-l-pink-500">
-                <div class="kpi-label">Índice Feminidad</div>
-                <div class="kpi-value" id="kpi-paridad">0</div>
-                <div class="kpi-sub">Mujeres x 100 Hombres</div>
+            <div class="pbi-card kpi-box border-l-[5px] border-l-pink-500 bg-gradient-to-br from-pink-50/40 to-transparent relative">
+                <div class="kpi-label text-pink-600">Índice Feminidad</div>
+                <div class="kpi-value text-slate-900" id="kpi-paridad">0</div>
+                <div class="kpi-sub absolute bottom-3 right-4 text-pink-400/80 hidden sm:block">Mujeres x 100 Hombres</div>
+                <div class="kpi-sub sm:hidden">Mujeres x 100 Hombres</div>
             </div>
-            <div class="pbi-card kpi-box border-l-4 border-l-emerald-500">
-                <div class="kpi-label">Precio Promedio</div>
-                <div class="kpi-value text-emerald-600" id="kpi-precio">$ 0</div>
+            <div class="pbi-card kpi-box border-l-[5px] border-l-emerald-500 bg-gradient-to-br from-emerald-50/40 to-transparent">
+                <div class="kpi-label text-emerald-600">Precio Promedio</div>
+                <div class="kpi-value text-emerald-600 drop-shadow-sm" id="kpi-precio">$ 0</div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5 mb-4 md:mb-5">
-            <div class="pbi-card h-[350px] lg:h-[400px]">
-                <div class="pbi-title">
-                    <span class="truncate">Evolución Histórica <span class="hidden sm:inline">y % Crec.</span></span>
-                    <select id="mode-evolucion" onchange="aplicarFiltros()" class="viz-selector">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-5 md:mb-6">
+            <div class="pbi-card h-[380px] lg:h-[420px]">
+                <div class="pbi-title flex-wrap sm:flex-nowrap">
+                    <span class="truncate w-full sm:w-auto">Evolución Histórica <span class="hidden sm:inline text-slate-400 font-medium ml-1">y % Crec.</span></span>
+                    <select id="mode-evolucion" onchange="aplicarFiltros()" class="viz-selector sm:w-auto mt-2 sm:mt-0 shadow-sm">
                         <option value="TOTAL">Consolidado Total (YoY%)</option>
                         <option value="SEXO">Comparativa: Sexo</option>
                         <option value="METOD">Comparativa: Metodología</option>
@@ -158,10 +288,10 @@
                 <div class="chart-scroll-wrapper"><div id="grafico-evolucion" class="w-full h-full"></div></div>
             </div>
             
-            <div class="pbi-card h-[350px] lg:h-[400px]">
-                <div class="pbi-title">
-                    <span class="truncate">Mapa de Concentración</span>
-                    <select id="map-mode" onchange="aplicarFiltros()" class="viz-selector">
+            <div class="pbi-card h-[380px] lg:h-[420px]">
+                <div class="pbi-title flex-wrap sm:flex-nowrap">
+                    <span class="truncate w-full sm:w-auto">Mapa de Concentración</span>
+                    <select id="map-mode" onchange="aplicarFiltros()" class="viz-selector sm:w-auto mt-2 sm:mt-0 shadow-sm">
                         <option value="TOTAL">Totales Consolidados</option>
                         <option value="SEXO">Comparativa: Sexo</option>
                         <option value="METOD">Comparativa: Metodología</option>
@@ -171,11 +301,14 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5 mb-4 md:mb-5">
-            <div class="pbi-card h-[350px] lg:h-[400px]">
-                <div class="pbi-title">
-                    <div class="flex items-center gap-1 truncate">Top IES <span class="text-[0.65rem] font-normal text-slate-400" id="lbl-ies-count"></span></div>
-                    <select id="mode-ies" onchange="aplicarFiltros()" class="viz-selector">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-5 md:mb-6">
+            <div class="pbi-card h-[380px] lg:h-[420px]">
+                <div class="pbi-title flex-wrap sm:flex-nowrap">
+                    <div class="flex items-center gap-2 truncate w-full sm:w-auto">
+                        Top IES 
+                        <span class="bg-slate-100 text-slate-500 py-0.5 px-2 rounded-full text-[0.7rem] font-semibold" id="lbl-ies-count"></span>
+                    </div>
+                    <select id="mode-ies" onchange="aplicarFiltros()" class="viz-selector sm:w-auto mt-2 sm:mt-0 shadow-sm">
                         <option value="TOTAL">Consolidado Total</option>
                         <option value="SEXO">Comparar: Sexo</option>
                         <option value="METOD">Comparar: Metodología</option>
@@ -185,10 +318,13 @@
                 <div class="chart-scroll-wrapper"><div id="grafico-instituciones" class="w-full h-full"></div></div>
             </div>
             
-            <div class="pbi-card h-[350px] lg:h-[400px]">
-                <div class="pbi-title">
-                    <div class="flex items-center gap-1 truncate">Top Programas <span class="text-[0.65rem] font-normal text-slate-400" id="lbl-prog-count"></span></div>
-                    <select id="mode-prog" onchange="aplicarFiltros()" class="viz-selector">
+            <div class="pbi-card h-[380px] lg:h-[420px]">
+                <div class="pbi-title flex-wrap sm:flex-nowrap">
+                    <div class="flex items-center gap-2 truncate w-full sm:w-auto">
+                        Top Programas 
+                        <span class="bg-slate-100 text-slate-500 py-0.5 px-2 rounded-full text-[0.7rem] font-semibold" id="lbl-prog-count"></span>
+                    </div>
+                    <select id="mode-prog" onchange="aplicarFiltros()" class="viz-selector sm:w-auto mt-2 sm:mt-0 shadow-sm">
                         <option value="TOTAL">Consolidado Total</option>
                         <option value="SEXO">Comparar: Sexo</option>
                         <option value="METOD">Comparar: Metodología</option>
@@ -199,45 +335,56 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-5 mb-4 md:mb-5">
-            <div class="pbi-card h-[320px]">
-                <div class="pbi-title">Nivel Académico</div>
-                <div class="chart-scroll-wrapper"><div id="grafico-nivel" class="w-full h-full"></div></div>
-            </div>
-            <div class="pbi-card h-[320px]">
-                <div class="pbi-title">Metodología</div>
-                <div class="chart-scroll-wrapper"><div id="grafico-metodologia" class="w-full h-full"></div></div>
-            </div>
-            <div class="pbi-card h-[320px]">
-                <div class="pbi-title">Análisis de Sexo</div>
-                <div class="chart-scroll-wrapper"><div id="grafico-sexo" class="w-full h-full"></div></div>
-            </div>
-            <div class="pbi-card h-[320px]">
-                <div class="pbi-title">Semestre</div>
-                <div class="chart-scroll-wrapper"><div id="grafico-semestre" class="w-full h-full"></div></div>
-            </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6 mb-5 md:mb-6">
+            <div class="pbi-card h-[340px] hover:border-blue-200"><div class="pbi-title text-slate-700">Nivel Académico</div><div class="chart-scroll-wrapper"><div id="grafico-nivel" class="w-full h-full"></div></div></div>
+            <div class="pbi-card h-[340px] hover:border-emerald-200"><div class="pbi-title text-slate-700">Metodología</div><div class="chart-scroll-wrapper"><div id="grafico-metodologia" class="w-full h-full"></div></div></div>
+            <div class="pbi-card h-[340px] hover:border-pink-200"><div class="pbi-title text-slate-700">Análisis de Sexo</div><div class="chart-scroll-wrapper"><div id="grafico-sexo" class="w-full h-full"></div></div></div>
+            <div class="pbi-card h-[340px] hover:border-amber-200"><div class="pbi-title text-slate-700">Semestre</div><div class="chart-scroll-wrapper"><div id="grafico-semestre" class="w-full h-full"></div></div></div>
         </div>
 
-        <div class="pbi-card mb-4 md:mb-5 h-[400px]">
-            <div class="pbi-title">Comparativa y Flujo entre Variables Categóricas (Nivel → Metodología → Sexo)</div>
-            <div class="chart-scroll-wrapper"><div id="grafico-parcats" class="w-full h-full"></div></div>
+        <div class="pbi-card mb-5 md:mb-6 h-[420px]">
+            <div class="pbi-title bg-slate-50/50">
+                <span class="text-slate-800">Comparativa y Flujo entre Variables Categóricas <span class="text-slate-400 font-normal hidden md:inline">(Nivel → Metodología → Sexo)</span></span>
+            </div>
+            <div class="chart-scroll-wrapper p-2"><div id="grafico-parcats" class="w-full h-full"></div></div>
         </div>
 
-        <div class="pbi-card mb-2">
-            <div class="pbi-title pb-3 border-b border-slate-100">Detalle Analítico de Oferta</div>
+        <div class="pbi-card shadow-sm">
+            <div class="pbi-title pb-3 border-b border-slate-200 bg-slate-50/80">
+                <span class="font-bold text-slate-800">Detalle Analítico de Oferta</span>
+            </div>
             <div class="table-container">
-                <table class="w-full text-left border-collapse">
-                    <thead><tr><th>Institución (IES)</th><th>Programa</th><th>Departamento</th><th class="text-right">Matrículas</th><th class="text-right">Precio</th><th class="text-center">Enlace</th></tr></thead>
-                    <tbody id="tabla-detalles"></tbody>
+                <table class="w-full text-left border-collapse min-w-[800px] divide-y divide-slate-200">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th scope="col" class="tracking-wider text-slate-500">Institución (IES)</th>
+                            <th scope="col" class="tracking-wider text-slate-500">Programa</th>
+                            <th scope="col" class="tracking-wider text-slate-500">Departamento</th>
+                            <th scope="col" class="text-right tracking-wider text-slate-500">Matrículas</th>
+                            <th scope="col" class="text-right tracking-wider text-slate-500">Precio</th>
+                            <th scope="col" class="text-center tracking-wider text-slate-500">Enlace</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-detalles" class="divide-y divide-slate-100 bg-white"></tbody>
                 </table>
             </div>
         </div>
     </main>
 
-    <!-- FOOTER AÑADIDO CON DERECHOS RESERVADOS -->
-    <footer class="footer-rights">
-        <p>&copy; <span id="current-year"></span> Todos los derechos reservados.</p>
-        <p class="mt-1">Contacto para soporte e incidencias: <a href="mailto:dpabon180@unab.edu.co">dpabon180@unab.edu.co</a></p>
+    <footer class="bg-slate-900 border-t border-slate-800 mt-auto">
+        <div class="max-w-[1600px] mx-auto px-4 py-6 md:py-8 flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-4">
+            <div class="text-slate-400 text-sm">
+                <p class="font-medium text-slate-300">&copy; <span id="current-year"></span> Todos los derechos reservados.</p>
+                <p class="mt-1 text-xs">Desarrollado para análisis avanzado de datos educativos.</p>
+            </div>
+            <div class="text-slate-400 text-sm">
+                <p>Contacto soporte e incidencias:</p>
+                <a href="mailto:dpabon180@unab.edu.co" class="inline-flex items-center gap-2 mt-1 text-sky-400 hover:text-sky-300 font-medium transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                    dpabon180@unab.edu.co
+                </a>
+            </div>
+        </div>
     </footer>
 
     <script>
@@ -597,162 +744,413 @@
             };
 
             // --- 1. MAPA MULTIDIMENSIONAL ---
-            let mapMode = document.getElementById('map-mode').value;
-            const mapTraces = [];
-            let maxD = Math.max(...Object.values(agg.depto), 1);
+// --- MAPA CON LÓGICA COMPLETA Y ESTILO PREMIUM ---
+let mapMode = document.getElementById('map-mode').value;
+const mapTraces = [];
+let maxD = Math.max(...Object.values(agg.depto), 1);
 
-            if (geojsonData) {
-                const allDeptNames = geojsonData.features.map(f => f.properties.NOMBRE_DPT);
-                mapTraces.push({ type: 'choropleth', geojson: geojsonData, locations: allDeptNames, featureidkey: 'properties.NOMBRE_DPT', z: allDeptNames.map(() => 1), colorscale: [[0, '#f8fafc'], [1, '#f8fafc']], showscale: false, marker: { line: { color: '#cbd5e1', width: 1 } }, hoverinfo: 'none' });
+// 1. FONDO CHOROPLETH (MÁS SUTIL)
+if (geojsonData) {
+    const allDeptNames = geojsonData.features.map(f => f.properties.NOMBRE_DPT);
+    mapTraces.push({ 
+        type: 'choropleth', geojson: geojsonData, locations: allDeptNames, featureidkey: 'properties.NOMBRE_DPT', z: allDeptNames.map(() => 1), 
+        colorscale: [[0, '#f8fafc'], [1, '#f8fafc']], showscale: false, 
+        marker: { line: { color: '#cbd5e1', width: 0.8 }, opacity: 0.8 }, hoverinfo: 'none' 
+    });
+}
+
+if (mapMode === 'TOTAL') {
+    let lats = [], lons = [], txts = [], sizes = [], raws = [];
+    Object.entries(aggMap).forEach(([depto, data]) => {
+        let d = normDepto(depto).toLowerCase(); 
+        if (coordsDeptos[d] && data.total > 0) {
+            lats.push(coordsDeptos[d].lat); lons.push(coordsDeptos[d].lon);
+            txts.push(`<b>${depto.toUpperCase()}</b><br>Total: ${data.total.toLocaleString()}<br><span style="font-size:10px;color:#64748b">H: ${data.hombres || 0} | M: ${data.mujeres || 0}</span>`);
+            sizes.push((isMobile ? 10 : 14) + Math.sqrt(data.total/maxD) * (isMobile ? 30 : 45)); 
+            raws.push(depto);
+        }
+    });
+    mapTraces.push({ 
+        type: 'scattergeo', lat: lats, lon: lons, text: txts, customdata: raws, hoverinfo: 'text', mode: 'markers', 
+        marker: { size: sizes, color: '#3b82f6', opacity: 0.85, line: { width: 1.5, color: '#ffffff' } } 
+    });
+} else {
+    // 2. LÓGICA RESTAURADA Y AMPLIADA (Soporta Sexo, Metodología y Semestre)
+    let lats1=[], lons1=[], sizes1=[], txts1=[], raws1=[];
+    let lats2=[], lons2=[], sizes2=[], txts2=[], raws2=[];
+    
+    // Configuración dinámica según el filtro seleccionado
+    let lbl1, lbl2, c1, c2, getVal1, getVal2;
+
+    if (mapMode === 'SEXO') {
+        lbl1 = 'Hombres'; lbl2 = 'Mujeres';
+        c1 = coloresVisuales.SEXO?.['Hombres'] || '#0ea5e9';
+        c2 = coloresVisuales.SEXO?.['Mujeres'] || '#ec4899';
+        getVal1 = data => data.hombres || 0;
+        getVal2 = data => data.mujeres || 0;
+    } else if (mapMode === 'SEMESTRE') {
+        lbl1 = 'Semestre 1'; lbl2 = 'Semestre 2';
+        c1 = '#8b5cf6'; // Morado Premium
+        c2 = '#f59e0b'; // Ambar Premium
+        // Asegúrate de que las llaves (semestre1, semestre2) coincidan con cómo las guardas en aggMap
+        getVal1 = data => data.semestre1 || data['1'] || 0; 
+        getVal2 = data => data.semestre2 || data['2'] || 0;
+    } else { // Por defecto asume METODOLOGIA
+        lbl1 = 'Presencial'; lbl2 = 'Virtual/Dist.';
+        c1 = coloresVisuales.METOD?.['Presencial'] || '#10b981';
+        c2 = coloresVisuales.METOD?.['Virtual/Dist.'] || '#f43f5e';
+        getVal1 = data => data.presencial || 0;
+        getVal2 = data => data.virtual || 0;
+    }
+
+    Object.entries(aggMap).forEach(([depto, data]) => {
+        let d = normDepto(depto).toLowerCase();
+        if (coordsDeptos[d] && data.total > 0) {
+            let lat = coordsDeptos[d].lat, lon = coordsDeptos[d].lon;
+            let val1 = getVal1(data);
+            let val2 = getVal2(data);
+
+            if (val1 > 0) { 
+                lats1.push(lat); lons1.push(lon - 0.12); // Offset ajustado para que no se separen mucho
+                sizes1.push((isMobile ? 8 : 10) + Math.sqrt(val1/maxD)*35); 
+                txts1.push(`<b>${depto} (${lbl1})</b><br>${val1.toLocaleString()} matr.`); 
+                raws1.push(depto); 
             }
-
-            if (mapMode === 'TOTAL') {
-                let lats = [], lons = [], txts = [], sizes = [], raws = [];
-                Object.entries(aggMap).forEach(([depto, data]) => {
-                    let d = normDepto(depto).toLowerCase(); 
-                    if (coordsDeptos[d] && data.total > 0) {
-                        lats.push(coordsDeptos[d].lat); lons.push(coordsDeptos[d].lon);
-                        txts.push(`<b>${depto}</b><br>Total: ${data.total.toLocaleString()} matr.<br><span style="font-size:10px;color:gray">M: ${data.hombres} | F: ${data.mujeres}</span>`);
-                        sizes.push((isMobile ? 8 : 12) + Math.sqrt(data.total/maxD)*25); 
-                        raws.push(depto);
-                    }
-                });
-                mapTraces.push({ type: 'scattergeo', lat: lats, lon: lons, text: txts, customdata: raws, hoverinfo: 'text', mode: 'markers', marker: { size: sizes, color: '#2563eb', opacity: 0.85, line: { width: 1, color: '#1e40af' } } });
-            } else {
-                let lats1=[], lons1=[], sizes1=[], txts1=[], raws1=[];
-                let lats2=[], lons2=[], sizes2=[], txts2=[], raws2=[];
-                Object.entries(aggMap).forEach(([depto, data]) => {
-                    let d = normDepto(depto).toLowerCase();
-                    if (coordsDeptos[d] && data.total > 0) {
-                        let lat = coordsDeptos[d].lat, lon = coordsDeptos[d].lon;
-                        let val1 = mapMode === 'SEXO' ? data.hombres : data.presencial;
-                        let val2 = mapMode === 'SEXO' ? data.mujeres : data.virtual;
-                        let lbl1 = mapMode === 'SEXO' ? 'Hombres' : 'Presencial';
-                        let lbl2 = mapMode === 'SEXO' ? 'Mujeres' : 'Distancia/Virtual';
-
-                        if (val1 > 0) { lats1.push(lat); lons1.push(lon - 0.15); sizes1.push((isMobile ? 6 : 8) + Math.sqrt(val1/maxD)*25); txts1.push(`<b>${depto} (${lbl1})</b><br>${val1.toLocaleString()} matr.`); raws1.push(depto); }
-                        if (val2 > 0) { lats2.push(lat); lons2.push(lon + 0.15); sizes2.push((isMobile ? 6 : 8) + Math.sqrt(val2/maxD)*25); txts2.push(`<b>${depto} (${lbl2})</b><br>${val2.toLocaleString()} matr.`); raws2.push(depto); }
-                    }
-                });
-                let c1 = mapMode === 'SEXO' ? coloresVisuales.SEXO['Hombres'] : coloresVisuales.METOD['Presencial'];
-                let c2 = mapMode === 'SEXO' ? coloresVisuales.SEXO['Mujeres'] : coloresVisuales.METOD['Virtual/Dist.'];
-                let n1 = mapMode === 'SEXO' ? 'Hombres' : 'Presencial';
-                let n2 = mapMode === 'SEXO' ? 'Mujeres' : 'Virtual/Dist.';
-
-                mapTraces.push({ type: 'scattergeo', name: n1, lat: lats1, lon: lons1, text: txts1, customdata: raws1, hoverinfo: 'text', mode: 'markers', marker: { size: sizes1, color: c1, opacity: 0.9, line: {width: 1, color: 'white'} } });
-                mapTraces.push({ type: 'scattergeo', name: n2, lat: lats2, lon: lons2, text: txts2, customdata: raws2, hoverinfo: 'text', mode: 'markers', marker: { size: sizes2, color: c2, opacity: 0.9, line: {width: 1, color: 'white'} } });
+            if (val2 > 0) { 
+                lats2.push(lat); lons2.push(lon + 0.12); 
+                sizes2.push((isMobile ? 8 : 10) + Math.sqrt(val2/maxD)*35); 
+                txts2.push(`<b>${depto} (${lbl2})</b><br>${val2.toLocaleString()} matr.`); 
+                raws2.push(depto); 
             }
-            const mapLayout = { ...layout, margin: {t:0, b:0, l:0, r:0}, showlegend: mapMode !== 'TOTAL', legend: { orientation: 'h', x: 0.5, y: -0.05, xanchor: 'center', bgcolor: 'rgba(255,255,255,0.8)' }, geo: geojsonData ? { fitbounds: 'locations', visible: false, bgcolor: 'transparent' } : { scope: 'south america', center: { lat: 4.5, lon: -73.0 }, projection: { type: 'mercator', scale: isMobile ? 3.5 : 4.5 }, showland: true, landcolor: '#f8fafc', showcountries: true, countrycolor: '#e2e8f0', bgcolor: 'transparent' } };
-            Plotly.newPlot('mapa-colombia', mapTraces, mapLayout, confGen);
-            bindPlotlyClick('mapa-colombia', 'depto', d => { const pt = d.points[0]; return pt.data.type === 'scattergeo' ? pt.customdata : null; });
+        }
+    });
 
+    // Inyectamos las burbujas comparativas
+    mapTraces.push({ type: 'scattergeo', name: lbl1, lat: lats1, lon: lons1, text: txts1, customdata: raws1, hoverinfo: 'text', mode: 'markers', marker: { size: sizes1, color: c1, opacity: 0.9, line: {width: 1.2, color: '#ffffff'} } });
+    mapTraces.push({ type: 'scattergeo', name: lbl2, lat: lats2, lon: lons2, text: txts2, customdata: raws2, hoverinfo: 'text', mode: 'markers', marker: { size: sizes2, color: c2, opacity: 0.9, line: {width: 1.2, color: '#ffffff'} } });
+}
+
+// 3. LAYOUT LIMPIO (Geo FitBounds)
+const mapLayout = { 
+    ...layout, 
+    margin: {t:0, b:0, l:0, r:0}, 
+    showlegend: mapMode !== 'TOTAL', 
+    legend: { orientation: 'h', x: 0.5, y: -0.05, xanchor: 'center', bgcolor: 'rgba(255,255,255,0.8)', font: { size: 11, color: '#475569' } }, 
+    geo: geojsonData ? 
+        { fitbounds: 'locations', visible: false, bgcolor: 'transparent' } : 
+        { scope: 'south america', center: { lat: 4.5, lon: -73.0 }, projection: { type: 'mercator', scale: isMobile ? 3.5 : 4.5 }, showland: true, landcolor: '#f8fafc', showcountries: true, countrycolor: '#e2e8f0', bgcolor: 'transparent' } 
+};
+
+Plotly.newPlot('mapa-colombia', mapTraces, mapLayout, confGen);
+bindPlotlyClick('mapa-colombia', 'depto', d => { const pt = d.points[0]; return pt.data.type === 'scattergeo' ? pt.customdata : null; });
 
             // --- 2. EVOLUCIÓN HISTÓRICA (NUEVOS MULTI-LÍNEAS) ---
-            let modeEvol = document.getElementById('mode-evolucion').value;
-            let años = Object.keys(agg.año).sort();
-            let tracesEvol = [];
-            
-            if (modeEvol === 'TOTAL') {
-                let valsAños = años.map(a => aggEvolDetalle[a].total);
-                let textosConCrecimiento = valsAños.map((v, i) => {
-                    if (i === 0 || valsAños[i-1] === 0) return `<b>${v.toLocaleString()}</b>`;
-                    let prev = valsAños[i-1], pct = ((v - prev) / prev) * 100;
-                    return `<b>${v.toLocaleString()}</b><br>${pct > 0 ? '▲' : (pct < 0 ? '▼' : '▬')} ${Math.abs(pct).toFixed(1)}%`;
-                });
-                let coloresTexto = valsAños.map((v, i) => {
-                    if (i === 0 || valsAños[i-1] === 0) return '#0f172a';
-                    let pct = ((v - valsAños[i-1]) / valsAños[i-1]);
-                    return pct > 0 ? '#16a34a' : (pct < 0 ? '#dc2626' : '#64748b');
-                });
-                tracesEvol.push({ x: años, y: valsAños, type: 'scatter', mode: 'lines+markers+text', text: textosConCrecimiento, textposition: 'top center', textfont: { weight: 700, color: coloresTexto, size: isMobile ? 10 : 11 }, line: { color: '#3b82f6', width: 3 }, marker: { size: 8 }, fill: 'tozeroy', fillcolor: 'rgba(59, 130, 246, 0.15)' });
-            } else {
-                let variableEvol = modeEvol.toLowerCase(); 
-                let subkeys = new Set();
-                años.forEach(a => Object.keys(aggEvolDetalle[a][variableEvol]).forEach(sk => subkeys.add(sk)));
-                
-                let paleta = coloresVisuales[modeEvol] || {};
-                Array.from(subkeys).sort().forEach((sk, idx) => {
-                    let yVals = años.map(a => aggEvolDetalle[a][variableEvol][sk] || 0);
-                    let color = paleta[sk] || coloresFallback[idx % coloresFallback.length];
-                    tracesEvol.push({ x: años, y: yVals, name: sk, type: 'scatter', mode: 'lines+markers+text', text: yVals.map(v => v > 0 ? v.toLocaleString() : ''), textposition: 'top center', textfont: { size: isMobile ? 9 : 10, color: color }, line: { width: 3, color: color }, marker: { size: 7, color: color } });
-                });
-            }
-            
-            let maxTotalEvol = Math.max(...años.map(a => aggEvolDetalle[a].total), 1);
-            Plotly.newPlot('grafico-evolucion', tracesEvol, { ...layout, showlegend: modeEvol !== 'TOTAL', legend: { orientation: 'h', x: 0.5, y: -0.15, xanchor: 'center', font: {size: 10} }, margin: {l: isMobile ? 30 : 50, r:20, t:20, b:40}, yaxis: { range: [0, maxTotalEvol*1.3], showticklabels: true } }, confGen);
-            bindPlotlyClick('grafico-evolucion', 'año', d => String(d.points[0].x));
+// 
+let modeEvol = document.getElementById('mode-evolucion').value;
+let años = Object.keys(agg.año).sort();
+let tracesEvol = [];
+
+if (modeEvol === 'TOTAL') {
+    let valsAños = años.map(a => aggEvolDetalle[a].total);
+    
+    let textosConCrecimiento = valsAños.map((v, i) => {
+        if (i === 0 || valsAños[i-1] === 0) return `<b>${v.toLocaleString()}</b>`;
+        let prev = valsAños[i-1], pct = ((v - prev) / prev) * 100;
+        // Símbolos más limpios y espaciado mejorado
+        let icon = pct > 0 ? '▲' : (pct < 0 ? '▼' : '▬');
+        return `<b>${v.toLocaleString()}</b><br><span style="font-size:9px">${icon} ${Math.abs(pct).toFixed(1)}%</span>`;
+    });
+
+    let coloresTexto = valsAños.map((v, i) => {
+        if (i === 0 || valsAños[i-1] === 0) return '#1e293b';
+        let pct = ((v - valsAños[i-1]) / valsAños[i-1]);
+        return pct > 0 ? '#10b981' : (pct < 0 ? '#ef4444' : '#64748b');
+    });
+
+    tracesEvol.push({ 
+        x: años, y: valsAños, 
+        type: 'scatter', 
+        mode: 'lines+markers+text', 
+        text: textosConCrecimiento, 
+        textposition: 'top center',
+        textfont: { weight: 700, color: coloresTexto, size: isMobile ? 10 : 11 },
+        // LÍNEA SUAVE (SPLINE) - Da un look mucho más moderno
+        line: { color: '#3b82f6', width: 4, shape: 'spline' }, 
+        marker: { size: 10, color: '#3b82f6', line: { color: '#ffffff', width: 2 } },
+        // DEGRADADO DE LLENADO
+        fill: 'tozeroy', 
+        fillcolor: 'rgba(59, 130, 246, 0.1)' 
+    });
+} else {
+    let variableEvol = modeEvol.toLowerCase(); 
+    let subkeys = new Set();
+    años.forEach(a => Object.keys(aggEvolDetalle[a][variableEvol]).forEach(sk => subkeys.add(sk)));
+    
+    let paleta = coloresVisuales[modeEvol] || {};
+    Array.from(subkeys).sort().forEach((sk, idx) => {
+        let yVals = años.map(a => aggEvolDetalle[a][variableEvol][sk] || 0);
+        let color = paleta[sk] || coloresFallback[idx % coloresFallback.length];
+        
+        tracesEvol.push({ 
+            x: años, y: yVals, name: sk, 
+            type: 'scatter', 
+            mode: 'lines+markers', // Quitamos texto en modo multi para no saturar
+            line: { width: 3, shape: 'spline', color: color }, 
+            marker: { size: 8, color: color, line: { color: '#ffffff', width: 1 } },
+            hoverinfo: 'name+y+x'
+        });
+    });
+}
+
+let maxTotalEvol = Math.max(...años.map(a => aggEvolDetalle[a].total), 1);
+
+// LAYOUT LIMPIO
+const layoutEvol = { 
+    ...layout, 
+    showlegend: modeEvol !== 'TOTAL', 
+    legend: { orientation: 'h', x: 0.5, y: -0.2, xanchor: 'center', font: {size: 11, color: '#64748b'} }, 
+    margin: { l: isMobile ? 40 : 60, r: 20, t: 30, b: 60 }, 
+    xaxis: { 
+        showgrid: false, // Quitar rejilla vertical para limpiar
+        tickfont: { color: '#64748b', weight: 'bold' }
+    },
+    yaxis: { 
+        range: [0, maxTotalEvol * 1.3], 
+        showticklabels: true,
+        gridcolor: '#f1f5f9', // Rejilla horizontal muy tenue
+        zeroline: false
+    },
+    hovermode: 'x unified' // Muestra todos los datos al pasar por el año
+};
+
+Plotly.newPlot('grafico-evolucion', tracesEvol, layoutEvol, confGen);
+bindPlotlyClick('grafico-evolucion', 'año', d => String(d.points[0].x));
 
 
             // --- 3. TOP INSTITUCIONES (NUEVOS BARRAS APILADAS) ---
-            let modeIes = document.getElementById('mode-ies').value;
-            let tIes = getTop(agg.ies, numLimit);
-            document.getElementById('lbl-ies-count').innerText = `(${tIes.k.length})`;
-            const altoIes = Math.max(isMobile ? 300 : 350, tIes.k.length * 35);
-            document.getElementById('grafico-instituciones').style.height = `${altoIes}px`;
-            const truncar = str => isMobile && str.length > 25 ? str.substring(0, 23) + '...' : str;
+// --- 3. TOP INSTITUCIONES (LÓGICA ORIGINAL + ESTILO PREMIUM) ---
+let modeIes = document.getElementById('mode-ies').value;
+let tIes = getTop(agg.ies, numLimit);
+document.getElementById('lbl-ies-count').innerText = `(${tIes.k.length})`;
+const altoIes = Math.max(isMobile ? 300 : 350, tIes.k.length * 35);
+document.getElementById('grafico-instituciones').style.height = `${altoIes}px`;
+const truncar = str => isMobile && str.length > 25 ? str.substring(0, 23) + '...' : str;
 
-            let tracesIes = [];
-            if(modeIes === 'TOTAL') {
-                tracesIes.push({ type: 'bar', orientation: 'h', customdata: tIes.k.slice().reverse(), y: tIes.k.slice().reverse().map(truncar), x: tIes.v.slice().reverse(), text: tIes.v.slice().reverse().map(v => v.toLocaleString()), textposition: 'auto', marker: { color: '#0ea5e9' } });
-            } else {
-                tracesIes = crearTracesApilados(aggIesDetalle, tIes.k.slice().reverse(), modeIes.toLowerCase());
-            }
+let tracesIes = [];
+if(modeIes === 'TOTAL') {
+    tracesIes.push({ 
+        type: 'bar', orientation: 'h', 
+        customdata: tIes.k.slice().reverse(), 
+        y: tIes.k.slice().reverse().map(truncar), 
+        x: tIes.v.slice().reverse(), 
+        text: tIes.v.slice().reverse().map(v => v.toLocaleString()), 
+        textposition: 'outside', // Mejor legibilidad
+        marker: { 
+            color: '#3b82f6', // Azul moderno
+            line: { color: '#ffffff', width: 2 }
+        } 
+    });
+} else {
+    // Aplicamos estilo a los traces generados por tu función
+    tracesIes = crearTracesApilados(aggIesDetalle, tIes.k.slice().reverse(), modeIes.toLowerCase()).map(t => ({
+        ...t, 
+        marker: { ...t.marker, line: { color: '#ffffff', width: 1.5 } },
+        textposition: 'auto'
+    }));
+}
 
-            Plotly.newPlot('grafico-instituciones', tracesIes, { ...layout, barmode: modeIes === 'TOTAL' ? 'group' : 'stack', showlegend: modeIes !== 'TOTAL', legend: { orientation: 'h', x: 0.5, y: -0.1, xanchor: 'center', font: {size: 10} }, margin:{l: 10, t:10, b:30, r:30}, yaxis: { automargin: true } }, confGen); 
-            bindPlotlyClick('grafico-instituciones', 'ies', d => d.points[0].customdata);
+Plotly.newPlot('grafico-instituciones', tracesIes, { 
+    ...layout, 
+    barmode: modeIes === 'TOTAL' ? 'group' : 'stack', 
+    showlegend: modeIes !== 'TOTAL', 
+    legend: { orientation: 'h', x: 0.5, y: -0.1, xanchor: 'center', font: {size: 11, color: '#64748b'} }, 
+    margin: {l: 10, t: 30, b: 30, r: 50}, 
+    xaxis: { showgrid: true, gridcolor: '#f1f5f9', zeroline: false },
+    yaxis: { automargin: true, tickfont: { size: 12, color: '#1e293b' } } 
+}, confGen); 
+bindPlotlyClick('grafico-instituciones', 'ies', d => d.points[0].customdata);
 
 
-            // --- 4. TOP PROGRAMAS (NUEVOS BARRAS APILADAS) ---
-            let modeProg = document.getElementById('mode-prog').value;
-            let tProg = getTop(agg.prog, numLimit);
-            document.getElementById('lbl-prog-count').innerText = `(${tProg.k.length})`;
-            const altoProg = Math.max(isMobile ? 300 : 350, tProg.k.length * 35);
-            document.getElementById('grafico-programas').style.height = `${altoProg}px`;
+// --- 4. TOP PROGRAMAS (LÓGICA ORIGINAL + ESTILO PREMIUM) ---
+let modeProg = document.getElementById('mode-prog').value;
+let tProg = getTop(agg.prog, numLimit);
+document.getElementById('lbl-prog-count').innerText = `(${tProg.k.length})`;
+const altoProg = Math.max(isMobile ? 300 : 350, tProg.k.length * 35);
+document.getElementById('grafico-programas').style.height = `${altoProg}px`;
 
-            let tracesProg = [];
-            if(modeProg === 'TOTAL') {
-                tracesProg.push({ type: 'bar', orientation: 'h', customdata: tProg.k.slice().reverse(), y: tProg.k.slice().reverse().map(truncar), x: tProg.v.slice().reverse(), text: tProg.v.slice().reverse().map(v => v.toLocaleString()), textposition: 'auto', marker: { color: '#8b5cf6' } });
-            } else {
-                tracesProg = crearTracesApilados(aggProgDetalle, tProg.k.slice().reverse(), modeProg.toLowerCase());
-            }
+let tracesProg = [];
+if(modeProg === 'TOTAL') {
+    tracesProg.push({ 
+        type: 'bar', orientation: 'h', 
+        customdata: tProg.k.slice().reverse(), 
+        y: tProg.k.slice().reverse().map(truncar), 
+        x: tProg.v.slice().reverse(), 
+        text: tProg.v.slice().reverse().map(v => v.toLocaleString()), 
+        textposition: 'outside',
+        marker: { 
+            color: '#8b5cf6', // Morado moderno
+            line: { color: '#ffffff', width: 2 }
+        } 
+    });
+} else {
+    tracesProg = crearTracesApilados(aggProgDetalle, tProg.k.slice().reverse(), modeProg.toLowerCase()).map(t => ({
+        ...t, 
+        marker: { ...t.marker, line: { color: '#ffffff', width: 1.5 } },
+        textposition: 'auto'
+    }));
+}
 
-            Plotly.newPlot('grafico-programas', tracesProg, { ...layout, barmode: modeProg === 'TOTAL' ? 'group' : 'stack', showlegend: modeProg !== 'TOTAL', legend: { orientation: 'h', x: 0.5, y: -0.1, xanchor: 'center', font: {size: 10} }, margin:{l: 10, t:10, b:30, r:30}, yaxis: { automargin: true } }, confGen);
-            bindPlotlyClick('grafico-programas', 'programa', d => d.points[0].customdata);
+Plotly.newPlot('grafico-programas', tracesProg, { 
+    ...layout, 
+    barmode: modeProg === 'TOTAL' ? 'group' : 'stack', 
+    showlegend: modeProg !== 'TOTAL', 
+    legend: { orientation: 'h', x: 0.5, y: -0.1, xanchor: 'center', font: {size: 11, color: '#64748b'} }, 
+    margin: {l: 10, t: 30, b: 30, r: 50}, 
+    xaxis: { showgrid: true, gridcolor: '#f1f5f9', zeroline: false },
+    yaxis: { automargin: true, tickfont: { size: 12, color: '#1e293b' } } 
+}, confGen);
+bindPlotlyClick('grafico-programas', 'programa', d => d.points[0].customdata);
 
 
-            // --- 5. GRÁFICOS CIRCULARES (Se mantienen intactos) ---
-            const donutLyt = { ...layout, margin: {t: 10, b: 20, l: 10, r: 10}, showlegend: true, legend: { orientation: 'h', x: 0.5, y: -0.1, xanchor: 'center', yanchor: 'top', font: {size: 10} } };
+            // --- 5. GRÁFICOS CIRCULARES (ESTILO OPTIMIZADO) ---
 
-            Plotly.newPlot('grafico-nivel', [{ labels: Object.keys(agg.nivel), values: Object.values(agg.nivel), type: 'pie', hole: 0.6, textinfo: 'percent', textposition: 'inside', marker:{colors:['#f59e0b','#ec4899','#3b82f6', '#10b981']} }], donutLyt, confGen);
-            bindPlotlyClick('grafico-nivel', 'nivel', d => d.points[0].label);
+// --- 1. CONFIGURACIÓN DE DISEÑO (LAYOUT) ---
+const donutLytBase = { 
+    ...layout, 
+    // Márgenes generosos para que el texto grande por fuera no achique el círculo
+    margin: { t: 40, b: 80, l: 80, r: 80 }, 
+    showlegend: true,
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    font: { family: "'Inter', sans-serif" },
+    grid: { rows: 1, columns: 1 },
+    legend: { 
+        orientation: 'h', 
+        x: 0.5, y: -0.25, 
+        xanchor: 'center', 
+        font: { size: 11, color: '#64748b' } 
+    } 
+};
 
-            Plotly.newPlot('grafico-metodologia', [{ labels: Object.keys(agg.metod), values: Object.values(agg.metod), type: 'pie', hole: 0.6, textinfo: 'percent', textposition: 'inside', marker:{colors:[coloresVisuales.METOD['Presencial'], coloresVisuales.METOD['Virtual/Dist.'], '#f43f5e']} }], donutLyt, confGen);
-            bindPlotlyClick('grafico-metodologia', 'metodologia', d => d.points[0].label);
+// --- 2. FUNCIÓN PARA DATA (PORCENTAJES GRANDES POR FUERA) ---
+const crearDataDonut = (labels, colors) => [{
+    labels: Object.keys(labels),
+    values: Object.values(labels),
+    type: 'pie',
+    hole: 0.72, 
+    textinfo: 'percent', 
+    textposition: 'outside', // Por fuera como pediste
+    automargin: false,       // OBLIGA a que el círculo no se achique
+    marker: {
+        colors: colors,
+        line: { color: '#ffffff', width: 3 }
+    },
+    textfont: {
+        size: 17,            // Porcentajes bien GRANDES
+        color: '#1e293b', 
+        weight: 'bold'
+    },
+    // Forzamos a que el círculo use todo el espacio disponible del 0 al 1
+    domain: { x: [0, 1], y: [0, 1] } 
+}];
 
-            Plotly.newPlot('grafico-sexo', [{ labels: Object.keys(agg.sexo), values: Object.values(agg.sexo), type: 'pie', hole: 0.6, textinfo: 'percent', textposition: 'inside', marker:{colors:[coloresVisuales.SEXO['Mujeres'], coloresVisuales.SEXO['Hombres'], '#94a3b8']} }], donutLyt, confGen);
-            bindPlotlyClick('grafico-sexo', 'sexo', d => d.points[0].label);
+// Número central (Total)
+const obtenerAnotacionCentral = (dataLabels) => [{
+    font: { size: 24, color: '#1e293b', weight: 'bold' },
+    showarrow: false,
+    text: Object.values(dataLabels).reduce((a, b) => a + b, 0).toLocaleString(),
+    x: 0.5, y: 0.5
+}];
 
-            Plotly.newPlot('grafico-semestre', [{ labels: Object.keys(agg.semestre), values: Object.values(agg.semestre), type: 'pie', hole: 0.6, textinfo: 'percent', textposition: 'inside', marker:{colors:['#8b5cf6', '#f59e0b', '#14b8a6', '#06b6d4', '#f43f5e']} }], donutLyt, confGen);
-            bindPlotlyClick('grafico-semestre', 'semestre', d => d.points[0].label);
+// --- 3. RENDERIZADO UNIFORME ---
 
+// Nivel Académico
+Plotly.newPlot('grafico-nivel', 
+    crearDataDonut(agg.nivel, ['#6366f1', '#a5b4fc', '#818cf8', '#c7d2fe']), 
+    { ...donutLytBase, annotations: obtenerAnotacionCentral(agg.nivel) }, confGen);
+
+// Metodología (¡Ahora tendrá el mismo tamaño que los demás!)
+Plotly.newPlot('grafico-metodologia', 
+    crearDataDonut(agg.metod, ['#10b981', '#34d399', '#a7f3d0']), 
+    { ...donutLytBase, annotations: obtenerAnotacionCentral(agg.metod) }, confGen);
+
+// Análisis de Sexo
+Plotly.newPlot('grafico-sexo', 
+    crearDataDonut(agg.sexo, ['#0ea5e9', '#f43f5e']), 
+    { ...donutLytBase, annotations: obtenerAnotacionCentral(agg.sexo) }, confGen);
+
+// Semestre
+Plotly.newPlot('grafico-semestre', 
+    crearDataDonut(agg.semestre, ['#f59e0b', '#fbbf24', '#fcd34d', '#fef3c7']), 
+    { ...donutLytBase, annotations: obtenerAnotacionCentral(agg.semestre) }, confGen);
 
             // --- 6. CATEGORÍAS PARALELAS (Sankey Multicategórico) ---
-            let dimNivel = [], dimMetod = [], dimSexo = [], freqs = [];
-            Object.keys(parcatsAgg).forEach(k => {
-                let p = k.split('|'); dimNivel.push(p[0]); dimMetod.push(p[1]); dimSexo.push(p[2]); freqs.push(parcatsAgg[k]);
-            });
+// --- 6. CATEGORÍAS PARALELAS (Estilo UI Moderno) ---
+let dimNivel = [], dimMetod = [], dimSexo = [], freqs = [];
 
-            let nivelesUnicos = [...new Set(dimNivel)];
-            let arrayColoresParcats = dimNivel.map(n => nivelesUnicos.indexOf(n));
+Object.keys(parcatsAgg).forEach(k => {
+    let p = k.split('|'); 
+    dimNivel.push(p[0]); 
+    dimMetod.push(p[1]); 
+    dimSexo.push(p[2]); 
+    freqs.push(parcatsAgg[k]);
+});
 
-            let traceParcats = {
-                type: 'parcats',
-                line: { color: arrayColoresParcats, colorscale: 'Portland', shape: 'hspline' },
-                dimensions: [ {label: 'Nivel Académico', values: dimNivel}, {label: 'Metodología', values: dimMetod}, {label: 'Sexo', values: dimSexo} ],
-                counts: freqs, labelfont: { family: 'Inter', size: isMobile ? 10 : 12, color: '#334155' }, tickfont: { family: 'Inter', size: isMobile ? 9 : 11, color: '#64748b' }
-            };
+// Definimos una escala de colores que combine con tus otros gráficos (Azules/Slate)
+// Usamos una transición suave de Indigo a Slate
+const coloresParcats = [
+    [0, '#6366f1'],   // Indigo 500
+    [0.5, '#94a3b8'], // Slate 400
+    [1, '#cbd5e1']    // Slate 300
+];
 
-            Plotly.newPlot('grafico-parcats', [traceParcats], { ...layout, margin: {t:40, b:20, l:isMobile ? 30 : 60, r:isMobile ? 30 : 60} }, confGen);
+let nivelesUnicos = [...new Set(dimNivel)];
+let arrayColoresParcats = dimNivel.map(n => nivelesUnicos.indexOf(n));
+
+let traceParcats = {
+    type: 'parcats',
+    hoverinfo: 'count+probability',
+    arrangement: 'freeform', // Permite mover las categorías para que se vea más fluido
+    bundlecolors: true,      // Agrupa colores para que no parezca un plato de espagueti
+    line: { 
+        color: arrayColoresParcats, 
+        colorscale: coloresParcats, 
+        shape: 'hspline',    // Curvas suaves tipo Sankey
+        hoverinfo: 'none'
+    },
+    dimensions: [ 
+        { label: 'NIVEL', values: dimNivel }, 
+        { label: 'METODOLOGÍA', values: dimMetod }, 
+        { label: 'SEXO', values: dimSexo } 
+    ],
+    counts: freqs,
+    // Tipografía matching con el resto del dashboard
+    labelfont: { 
+        family: "'Inter', sans-serif", 
+        size: isMobile ? 10 : 12, 
+        color: '#1e293b', 
+        weight: 'bold' 
+    }, 
+    tickfont: { 
+        family: "'Inter', sans-serif", 
+        size: isMobile ? 9 : 11, 
+        color: '#64748b' 
+    }
+};
+
+// Layout limpio
+const parcatsLyt = { 
+    ...layout, 
+    margin: { t: 60, b: 40, l: isMobile ? 40 : 80, r: isMobile ? 40 : 80 },
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)'
+};
+
+Plotly.newPlot('grafico-parcats', [traceParcats], parcatsLyt, confGen);
+
+
+
+
+
         }
     </script>
 </body>
