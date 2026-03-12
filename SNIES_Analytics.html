@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Dashboard Analítico Educativo - Multi-Área</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,21 +22,23 @@
         .pbi-card:hover { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06); border-color: #e2e8f0; }
         .pbi-title { font-size: 0.875rem; font-weight: 600; color: #1e293b; padding: 12px 16px 0 16px; letter-spacing: -0.01em; display: flex; justify-content: space-between; align-items: center; }
         
-        .kpi-box { padding: 16px; text-align: left; }
-        .kpi-value { font-size: 1.875rem; font-weight: 700; color: #0f172a; line-height: 1.2; letter-spacing: -0.02em; margin-top: 4px; }
-        .kpi-label { font-size: 0.75rem; color: #64748b; text-transform: uppercase; font-weight: 600; margin-bottom: 2px; letter-spacing: 0.05em; }
-        .kpi-sub { font-size: 0.75rem; color: #94a3b8; margin-top: 2px; font-weight: 400; }
+        .kpi-box { padding: 12px 16px; text-align: left; }
+        .kpi-value { font-size: 1.5rem; font-weight: 700; color: #0f172a; line-height: 1.2; letter-spacing: -0.02em; margin-top: 4px; }
+        @media (min-width: 768px) { .kpi-value { font-size: 1.875rem; } .kpi-box { padding: 16px; } }
+        .kpi-label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 600; margin-bottom: 2px; letter-spacing: 0.05em; }
+        .kpi-sub { font-size: 0.65rem; color: #94a3b8; margin-top: 2px; font-weight: 400; }
 
-        .chart-scroll-wrapper { flex: 1; width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; position: relative; }
+        .chart-scroll-wrapper { flex: 1; width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; position: relative; min-height: 0; min-width: 0; }
         
-        select { background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px; width: 100%; outline: none; font-size: 0.8125rem; font-weight: 500; color: #334155; cursor: pointer; transition: all 0.2s; }
+        select { background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 6px 10px; width: 100%; outline: none; font-size: 0.8125rem; font-weight: 500; color: #334155; cursor: pointer; transition: all 0.2s; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
         select:focus { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1); }
         
-        .dataset-selector { font-size: 1.125rem; font-weight: 700; color: #0f172a; border: 1px solid transparent; padding: 4px 10px; border-radius: 6px; background-color: #f1f5f9; cursor: pointer; transition: all 0.2s; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 10px center; background-size: 1em; padding-right: 36px; }
+        .dataset-selector { font-size: 0.9rem; font-weight: 700; color: #0f172a; border: 1px solid transparent; padding: 4px 10px; border-radius: 6px; background-color: #f1f5f9; cursor: pointer; transition: all 0.2s; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 8px center; background-size: 1em; padding-right: 32px; max-width: 200px; text-overflow: ellipsis; }
+        @media (min-width: 768px) { .dataset-selector { font-size: 1.125rem; max-width: none; } }
 
-        .table-container { max-height: 250px; overflow-y: auto; font-size: 0.8125rem; }
-        th { position: sticky; top: 0; background: #f8fafc; font-weight: 600; color: #475569; text-transform: uppercase; font-size: 0.7rem; padding: 10px; border-bottom: 2px solid #e2e8f0; z-index: 10; }
-        td { padding: 10px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+        .table-container { max-height: 300px; overflow-y: auto; overflow-x: auto; font-size: 0.8125rem; width: 100%; }
+        th { position: sticky; top: 0; background: #f8fafc; font-weight: 600; color: #475569; text-transform: uppercase; font-size: 0.7rem; padding: 10px; border-bottom: 2px solid #e2e8f0; z-index: 10; white-space: nowrap; }
+        td { padding: 10px; border-bottom: 1px solid #f1f5f9; color: #334155; white-space: nowrap; }
         tr:hover { background-color: #f8fafc; }
         
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -55,40 +57,40 @@
         ];
     </script>
 
-    <header class="bg-white border-b border-slate-200 px-5 py-3 flex justify-between items-center shrink-0 z-20 shadow-sm">
-        <div class="flex items-center gap-4">
-            <div class="w-11 h-11 bg-gradient-to-br from-blue-700 to-indigo-800 rounded-xl flex items-center justify-center text-white shadow-md">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <header class="bg-white border-b border-slate-200 px-3 md:px-5 py-3 flex flex-wrap gap-3 justify-between items-center shrink-0 z-20 shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 md:w-11 md:h-11 bg-gradient-to-br from-blue-700 to-indigo-800 rounded-xl flex items-center justify-center text-white shadow-md shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
             </div>
-            <div class="flex flex-col">
-                <p class="text-[0.65rem] text-slate-500 uppercase font-bold tracking-widest mb-0.5">Centro de análisis SNIES</p>
+            <div class="flex flex-col min-w-0">
+                <p class="text-[0.6rem] md:text-[0.65rem] text-slate-500 uppercase font-bold tracking-widest mb-0.5 whitespace-nowrap overflow-hidden text-ellipsis">Centro de Inteligencia Académica</p>
                 <div class="flex items-center gap-2">
-                    <span class="text-slate-400 text-sm font-medium">Área:</span>
+                    <span class="text-slate-400 text-xs md:text-sm font-medium hidden md:inline">Área:</span>
                     <select id="selector-dataset" onchange="cambiarDataset(this.value)" class="dataset-selector"></select>
                 </div>
             </div>
         </div>
         
-        <div class="flex items-center gap-4">
-            <span id="indicador-carga" class="text-xs text-blue-600 flex items-center gap-1.5 font-semibold animate-pulse bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
-                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        <div class="flex items-center">
+            <span id="indicador-carga" class="text-[0.65rem] md:text-xs text-blue-600 flex items-center gap-1.5 font-semibold animate-pulse bg-blue-50 px-2 md:px-3 py-1 md:py-1.5 rounded-full border border-blue-100 whitespace-nowrap">
+                <svg class="w-3.5 h-3.5 md:w-4 md:h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                 Conectando...
             </span>
         </div>
     </header>
 
     <!-- Barra de Filtros -->
-    <div id="panel-filtros" class="bg-white border-b border-slate-200 px-5 py-3 shrink-0 z-10 transition-opacity duration-300 shadow-sm">
-        <div class="grid grid-cols-2 md:grid-cols-6 lg:grid-cols-12 gap-4">
-            <div class="lg:col-span-2"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1">Año</label><select id="filtro-año" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
-            <div class="lg:col-span-2"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1">Departamento</label><select id="filtro-depto" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
-            <div class="lg:col-span-3"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1">Institución (IES)</label><select id="filtro-ies" onchange="aplicarFiltros()"><option value="TODOS">Todas</option></select></div>
-            <div class="lg:col-span-3"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1">Programa</label><select id="filtro-programa" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
+    <div id="panel-filtros" class="bg-white border-b border-slate-200 px-3 md:px-5 py-3 shrink-0 z-10 transition-opacity duration-300 shadow-sm">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 lg:grid-cols-12 gap-3 md:gap-4">
+            <div class="lg:col-span-2 min-w-0"><label class="block text-[0.6rem] md:text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Año</label><select id="filtro-año" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
+            <div class="lg:col-span-2 min-w-0"><label class="block text-[0.6rem] md:text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Departamento</label><select id="filtro-depto" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
+            <div class="lg:col-span-3 min-w-0"><label class="block text-[0.6rem] md:text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Institución (IES)</label><select id="filtro-ies" onchange="aplicarFiltros()"><option value="TODOS">Todas</option></select></div>
+            <div class="lg:col-span-3 min-w-0"><label class="block text-[0.6rem] md:text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Programa</label><select id="filtro-programa" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
             
-            <div class="lg:col-span-2">
-                <label class="block text-[0.65rem] font-bold text-blue-600 uppercase mb-1">Mostrar (Gráficas)</label>
+            <div class="col-span-2 sm:col-span-3 lg:col-span-2 min-w-0">
+                <label class="block text-[0.6rem] md:text-[0.65rem] font-bold text-blue-600 uppercase mb-1 truncate">Mostrar (Gráficas)</label>
                 <select id="filtro-limite" onchange="aplicarFiltros()" class="border-blue-300 bg-blue-50 text-blue-800 font-bold">
                     <option value="5">Top 5</option>
                     <option value="10" selected>Top 10</option>
@@ -98,31 +100,32 @@
             </div>
         </div>
         
-        <div id="indicador-filtros-graficos" class="hidden mt-3 pt-2 border-t border-slate-100 text-xs flex items-center justify-between gap-2">
+        <div id="indicador-filtros-graficos" class="hidden mt-3 pt-2 border-t border-slate-100 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div class="flex items-center gap-2 flex-wrap flex-1">
-                <span class="font-bold text-blue-700 flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
+                <span class="font-bold text-blue-700 flex items-center gap-1 text-[0.7rem] md:text-xs">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 md:h-4 md:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
                     Filtros Activos:
                 </span>
-                <span id="texto-filtros-graficos" class="flex gap-2 flex-wrap"></span>
-                <button onclick="limpiarFiltrosCruzados()" class="text-slate-500 hover:text-red-600 font-medium ml-2 transition-colors flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded">
-                    Limpiar Filtros Visuales
+                <span id="texto-filtros-graficos" class="flex gap-1.5 flex-wrap"></span>
+                <button onclick="limpiarFiltrosCruzados()" class="text-slate-500 hover:text-red-600 font-medium ml-1 transition-colors flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded text-[0.7rem] md:text-xs">
+                    Limpiar <span class="hidden sm:inline">Visuales</span>
                 </button>
             </div>
-            <div class="text-[0.65rem] text-slate-400 font-medium flex items-center gap-1 bg-slate-50 px-2 py-1 rounded border border-slate-100">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" /></svg>
-                Tip: Presiona <b>Ctrl</b> o <b>Shift</b> + Clic para selección múltiple
+            <div class="text-[0.6rem] md:text-[0.65rem] text-slate-400 font-medium flex items-center gap-1 bg-slate-50 px-2 py-1 rounded border border-slate-100 w-fit">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 md:h-3.5 md:w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" /></svg>
+                Tip: Clic gráfico para filtrar
             </div>
         </div>
     </div>
 
     <!-- Área Principal -->
-    <main class="flex-1 overflow-y-auto p-5 opacity-0 transition-opacity duration-500" id="dashboard-content">
+    <main class="flex-1 overflow-y-auto overflow-x-hidden p-3 md:p-5 opacity-0 transition-opacity duration-500 w-full" id="dashboard-content">
         
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-5 mb-5">
-            <div class="md:col-span-2 flex flex-col gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5 mb-4 md:mb-5 w-full">
+            <!-- KPIs ajustados para móvil (cuadrícula 2x2) y escritorio (columna) -->
+            <div class="md:col-span-2 grid grid-cols-2 md:flex md:flex-col gap-3 md:gap-4 min-w-0">
                 <div class="pbi-card kpi-box border-l-4 border-l-blue-600">
-                    <div class="kpi-label">Matrículas Totales</div>
+                    <div class="kpi-label">Matrículas</div>
                     <div class="kpi-value" id="kpi-matriculados">0</div>
                 </div>
                 <div class="pbi-card kpi-box border-l-4 border-l-indigo-500">
@@ -130,51 +133,51 @@
                     <div class="kpi-value" id="kpi-ies">0</div>
                 </div>
                 <div class="pbi-card kpi-box border-l-4 border-l-emerald-500">
-                    <div class="kpi-label">Precio Promedio</div>
+                    <div class="kpi-label">Precio Prom.</div>
                     <div class="kpi-value text-emerald-600" id="kpi-precio">$ 0</div>
                 </div>
                 <div class="pbi-card kpi-box border-l-4 border-l-pink-500">
                     <div class="kpi-label">Índice Feminidad</div>
                     <div class="kpi-value" id="kpi-paridad">0</div>
-                    <div class="kpi-sub">Mujeres x 100 Hombres</div>
+                    <div class="kpi-sub hidden sm:block">Mujeres x 100 Hombres</div>
                 </div>
             </div>
 
-            <div class="md:col-span-10 grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div class="pbi-card" style="height: 400px;">
-                    <div class="pbi-title">Evolución Histórica de Matrículas</div>
+            <div class="md:col-span-10 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 min-w-0">
+                <div class="pbi-card h-[300px] md:h-[400px] min-w-0">
+                    <div class="pbi-title">Evolución Histórica</div>
                     <div class="chart-scroll-wrapper"><div id="grafico-evolucion" class="w-full h-full"></div></div>
                 </div>
                 
-                <div class="pbi-card" style="height: 400px;">
+                <div class="pbi-card h-[300px] md:h-[400px] min-w-0">
                     <div class="pbi-title">Distribución por Departamento</div>
                     <div class="chart-scroll-wrapper"><div id="mapa-colombia" class="w-full h-full"></div></div>
                 </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-5 mb-5">
-            <div class="md:col-span-4 pbi-card" style="height: 350px;">
-                <div class="pbi-title">Instituciones por Matrículas <span class="text-xs font-normal text-slate-400" id="lbl-ies-count"></span></div>
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-5 mb-4 md:mb-5 w-full">
+            <div class="md:col-span-4 pbi-card h-[300px] md:h-[350px] min-w-0">
+                <div class="pbi-title truncate">Instituciones <span class="text-[0.65rem] font-normal text-slate-400 ml-1" id="lbl-ies-count"></span></div>
                 <div class="chart-scroll-wrapper"><div id="grafico-instituciones" class="w-full"></div></div>
             </div>
-            <div class="md:col-span-4 pbi-card" style="height: 350px;">
-                <div class="pbi-title">Programas Específicos <span class="text-xs font-normal text-slate-400" id="lbl-prog-count"></span></div>
+            <div class="md:col-span-4 pbi-card h-[300px] md:h-[350px] min-w-0">
+                <div class="pbi-title truncate">Programas <span class="text-[0.65rem] font-normal text-slate-400 ml-1" id="lbl-prog-count"></span></div>
                 <div class="chart-scroll-wrapper"><div id="grafico-programas" class="w-full"></div></div>
             </div>
-            <div class="md:col-span-4 grid grid-rows-2 gap-5">
-                <div class="pbi-card flex-1">
-                    <div class="pbi-title">Participación por Nivel</div>
+            <div class="md:col-span-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 md:grid-rows-2 gap-4 md:gap-5 min-w-0">
+                <div class="pbi-card flex-1 h-[250px] sm:h-auto md:h-auto min-w-0">
+                    <div class="pbi-title">Nivel Académico</div>
                     <div class="chart-scroll-wrapper"><div id="grafico-nivel" class="w-full h-full pb-2"></div></div>
                 </div>
-                <div class="pbi-card flex-1">
-                    <div class="pbi-title">Participación por Metodología</div>
+                <div class="pbi-card flex-1 h-[250px] sm:h-auto md:h-auto min-w-0">
+                    <div class="pbi-title">Metodología</div>
                     <div class="chart-scroll-wrapper"><div id="grafico-metodologia" class="w-full h-full pb-2"></div></div>
                 </div>
             </div>
         </div>
 
-        <div class="pbi-card mb-10">
+        <div class="pbi-card mb-8 min-w-0 w-full">
             <div class="pbi-title pb-3 flex justify-between items-center border-b border-slate-100">
                 <span>Detalle Analítico de Oferta</span>
             </div>
@@ -191,9 +194,8 @@
         let datosGlobales = []; 
         let filtrosCruzados = {}; 
         let datasetActual = null;
-        let geojsonData = null; // Guardará el mapa de Colombia nativo
+        let geojsonData = null;
 
-        // Coordenadas de los departamentos
         const coordsDeptos = {
             "bogota": { lat: 4.6097, lon: -74.0817 }, "antioquia": { lat: 6.2518, lon: -75.5636 }, 
             "valle del cauca": { lat: 3.4516, lon: -76.5320 }, "atlantico": { lat: 10.9685, lon: -74.7813 }, 
@@ -229,15 +231,21 @@
                 opcion.value = index; opcion.text = db.nombre; selector.appendChild(opcion);
             });
 
-            // Cargar el mapa GeoJSON de forma nativa para evitar bloqueos de firewalls/servidores
             try {
                 const geoRes = await fetch('https://gist.githubusercontent.com/john-guerra/43c7656821069d00dcbc/raw/be6a6e239cd5b5b803c6e7c2ec405b793a9064dd/Colombia.geo.json');
                 geojsonData = await geoRes.json();
-            } catch(e) {
-                console.warn("Fallo carga de GeoJSON, se usará silueta por defecto.");
-            }
+            } catch(e) { console.warn("Fallo carga de GeoJSON."); }
 
             cambiarDataset(0);
+
+            // Listener para redimensionar gráficos al rotar el celular o cambiar tamaño de ventana
+            window.addEventListener('resize', () => {
+                const charts = ['mapa-colombia', 'grafico-evolucion', 'grafico-instituciones', 'grafico-programas', 'grafico-nivel', 'grafico-metodologia'];
+                charts.forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el && el.data) Plotly.Plots.resize(el);
+                });
+            });
         };
 
         async function cambiarDataset(indice) {
@@ -296,7 +304,9 @@
             document.getElementById('indicador-carga').innerHTML = `✅ Datos listos`;
             document.getElementById('dashboard-content').classList.remove('opacity-0');
             document.getElementById('dashboard-content').classList.add('opacity-100');
-            aplicarFiltros(); 
+            
+            // Pequeño delay para asegurar que los divs se expandan antes de dibujar en móvil
+            setTimeout(() => aplicarFiltros(), 50); 
         }
 
         function toggleFiltroCruzado(tipo, valor, isMulti) {
@@ -353,7 +363,7 @@
             Object.entries(filtrosCruzados).forEach(([k, valores]) => {
                 if (valores.length > 0) {
                     let txt = valores.length <= 2 ? valores.join(', ') : `${valores.length} seleccionados`;
-                    activosHTML.push(`<span class="bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 rounded font-medium shadow-sm text-[0.7rem]">${k.toUpperCase()}: ${txt}</span>`);
+                    activosHTML.push(`<span class="bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 rounded font-medium shadow-sm text-[0.65rem] md:text-[0.7rem]">${k.toUpperCase()}: ${txt}</span>`);
                 }
             });
 
@@ -399,11 +409,11 @@
             document.getElementById('kpi-precio').innerText = precioPromedio > 0 ? `$ ${Math.round(precioPromedio).toLocaleString('es-CO')}` : 'N/D';
 
             let htmlTabla = Object.values(datosTabla).sort((a,b) => b.matr - a.matr).slice(0, 50).map(row => `
-                <tr><td class="font-medium text-[0.75rem]">${row.ies}</td><td class="text-[0.75rem]">${row.prog}</td><td class="text-[0.75rem]">${row.depto}</td><td class="text-right font-bold text-[0.75rem]">${row.matr.toLocaleString()}</td><td class="text-right text-[0.75rem] text-emerald-600">${row.precio>0?'$'+row.precio.toLocaleString('es-CO'):'-'}</td><td class="text-center">${row.url?`<a href="${row.url.startsWith('http')?row.url:'https://'+row.url}" target="_blank" class="text-blue-600 font-bold text-[0.7rem]">Ver</a>`:'-'}</td></tr>
+                <tr><td class="font-medium text-[0.75rem] max-w-[150px] truncate" title="${row.ies}">${row.ies}</td><td class="text-[0.75rem] max-w-[150px] truncate" title="${row.prog}">${row.prog}</td><td class="text-[0.75rem]">${row.depto}</td><td class="text-right font-bold text-[0.75rem]">${row.matr.toLocaleString()}</td><td class="text-right text-[0.75rem] text-emerald-600">${row.precio>0?'$'+row.precio.toLocaleString('es-CO'):'-'}</td><td class="text-center">${row.url?`<a href="${row.url.startsWith('http')?row.url:'https://'+row.url}" target="_blank" class="text-blue-600 font-bold text-[0.7rem]">Ver</a>`:'-'}</td></tr>
             `).join('');
             document.getElementById('tabla-detalles').innerHTML = htmlTabla || '<tr><td colspan="6" class="text-center py-4">No hay datos</td></tr>';
 
-            const fontStyle = { family: 'Inter', color: '#475569', size: 10 };
+            const fontStyle = { family: 'Inter', color: '#475569', size: window.innerWidth < 768 ? 9 : 10 };
             const confGen = { responsive: true, displayModeBar: false };
             const layout = { margin: { t: 10, b: 30, l: 30, r: 20 }, font: fontStyle, paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', xaxis: { showgrid: false, zeroline: false }, yaxis: { showgrid: true, gridcolor: '#f1f5f9', zeroline: false, automargin: true } };
             
@@ -416,107 +426,65 @@
                 return sliced.reduce((a,v)=>({k:[...a.k,v[0]], v:[...a.v,v[1]]}), {k:[],v:[], total: sorted.length});
             };
 
-            // 1. MAPA NATIVO (SIN SERVIDORES EXTERNOS QUE SE BLOQUEEN)
+            // 1. MAPA NATIVO
             let mapLats = [], mapLons = [], mapTxt = [], mapSize = [], mapVal = [], mapRaw = [];
             let maxD = Math.max(...Object.values(agg.depto), 1);
             
             Object.entries(agg.depto).forEach(([depto, cant]) => {
                 let d = normDepto(depto).toLowerCase(); 
                 if (coordsDeptos[d] && cant > 0) {
-                    mapLats.push(coordsDeptos[d].lat); 
-                    mapLons.push(coordsDeptos[d].lon);
-                    mapTxt.push(`<b>${depto}</b><br>${cant.toLocaleString()} matriculados`);
-                    mapSize.push(10 + Math.sqrt(cant/maxD)*25); // Ajuste sutil del tamaño
-                    mapVal.push(cant); 
-                    mapRaw.push(depto);
+                    mapLats.push(coordsDeptos[d].lat); mapLons.push(coordsDeptos[d].lon);
+                    mapTxt.push(`<b>${depto}</b><br>${cant.toLocaleString()} matr.`);
+                    mapSize.push((window.innerWidth < 768 ? 6 : 10) + Math.sqrt(cant/maxD)*20); 
+                    mapVal.push(cant); mapRaw.push(depto);
                 }
             });
 
             const mapTraces = [];
-
-            // CAPA 1: Fondo del país dibujado internamente (Evita que el mapa desaparezca)
             if (geojsonData) {
                 const allDeptNames = geojsonData.features.map(f => f.properties.NOMBRE_DPT);
-                mapTraces.push({
-                    type: 'choropleth',
-                    geojson: geojsonData,
-                    locations: allDeptNames,
-                    featureidkey: 'properties.NOMBRE_DPT',
-                    z: allDeptNames.map(() => 1), 
-                    colorscale: [[0, '#e2e8f0'], [1, '#e2e8f0']], // Color gris claro de fondo
-                    showscale: false,
-                    marker: { line: { color: '#ffffff', width: 1.5 } }, // Bordes blancos elegantes
-                    hoverinfo: 'none' // Para que no estorbe al pasar el mouse
-                });
+                mapTraces.push({ type: 'choropleth', geojson: geojsonData, locations: allDeptNames, featureidkey: 'properties.NOMBRE_DPT', z: allDeptNames.map(() => 1), colorscale: [[0, '#e2e8f0'], [1, '#e2e8f0']], showscale: false, marker: { line: { color: '#ffffff', width: 1 } }, hoverinfo: 'none' });
             }
+            mapTraces.push({ type: 'scattergeo', lat: mapLats, lon: mapLons, text: mapTxt, customdata: mapRaw, hoverinfo: 'text', mode: 'markers', marker: { size: mapSize, color: '#3b82f6', opacity: 0.85, line: { width: 1, color: '#1e3a8a' } } });
 
-            // CAPA 2: Burbujas azules sobre el mapa
-            mapTraces.push({
-                type: 'scattergeo',
-                lat: mapLats,
-                lon: mapLons,
-                text: mapTxt,
-                customdata: mapRaw,
-                hoverinfo: 'text',
-                mode: 'markers',
-                marker: {
-                    size: mapSize,
-                    color: '#3b82f6', // Azul profesional
-                    opacity: 0.85,
-                    line: { width: 1.5, color: '#1e3a8a' } // Borde azul oscuro
-                }
-            });
-
-            const mapLayout = {
-                ...layout,
-                margin: {t:0, b:0, l:0, r:0},
-                showlegend: false,
-                geo: geojsonData ? {
-                    fitbounds: 'locations',
-                    visible: false, // Apaga el mapa global de Plotly para mostrar solo Colombia
-                    bgcolor: 'transparent'
-                } : {
-                    scope: 'south america',
-                    center: { lat: 4.5, lon: -73.0 },
-                    projection: { type: 'mercator', scale: 4.5 },
-                    showland: true, landcolor: '#e2e8f0',
-                    showcountries: true, countrycolor: '#ffffff',
-                    bgcolor: 'transparent'
-                }
-            };
+            const mapLayout = { ...layout, margin: {t:0, b:0, l:0, r:0}, showlegend: false, geo: geojsonData ? { fitbounds: 'locations', visible: false, bgcolor: 'transparent' } : { scope: 'south america', center: { lat: 4.5, lon: -73.0 }, projection: { type: 'mercator', scale: window.innerWidth < 768 ? 3.5 : 4.5 }, showland: true, landcolor: '#e2e8f0', showcountries: true, countrycolor: '#ffffff', bgcolor: 'transparent' } };
 
             Plotly.newPlot('mapa-colombia', mapTraces, mapLayout, confGen);
-            
-            // Garantizar que el filtro solo aplique si hacen clic en una burbuja
-            bindPlotlyClick('mapa-colombia', 'depto', d => {
-                const pt = d.points[0];
-                return pt.data.type === 'scattergeo' ? pt.customdata : null;
-            });
+            bindPlotlyClick('mapa-colombia', 'depto', d => { const pt = d.points[0]; return pt.data.type === 'scattergeo' ? pt.customdata : null; });
 
             // 2. EVOLUCIÓN
             let años = Object.keys(agg.año).sort();
             let valsAños = años.map(a => agg.año[a]);
-            Plotly.newPlot('grafico-evolucion', [{ x: años, y: valsAños, type: 'scatter', mode: 'lines+markers+text', text: valsAños.map(v => v.toLocaleString()), textposition: 'top center', textfont: { weight: 600, color: '#1e293b' }, line: { color: '#2563eb', width: 3 }, marker: { size: 8 }, fill: 'tozeroy', fillcolor: 'rgba(37, 99, 235, 0.1)' }], { ...layout, margin: {l: 40, r:20, t:20, b:30}, yaxis: { range: [0, Math.max(...valsAños)*1.2] } }, confGen);
+            Plotly.newPlot('grafico-evolucion', [{ x: años, y: valsAños, type: 'scatter', mode: 'lines+markers+text', text: valsAños.map(v => v.toLocaleString()), textposition: 'top center', textfont: { weight: 600, color: '#1e293b', size: window.innerWidth < 768 ? 8 : 10 }, line: { color: '#2563eb', width: 2.5 }, marker: { size: 6 }, fill: 'tozeroy', fillcolor: 'rgba(37, 99, 235, 0.1)' }], { ...layout, margin: {l: window.innerWidth < 768 ? 20 : 40, r:20, t:20, b:30}, yaxis: { range: [0, Math.max(...valsAños)*1.2], showticklabels: window.innerWidth >= 768 } }, confGen);
             bindPlotlyClick('grafico-evolucion', 'año', d => String(d.points[0].x));
 
             // 3. INSTITUCIONES
             let tIes = getTop(agg.ies, numLimit);
-            document.getElementById('lbl-ies-count').innerText = limitVal === 'ALL' ? `(Todas: ${tIes.total})` : `(Mostrando ${tIes.k.length})`;
-            const altoIes = Math.max(280, tIes.k.length * 35);
+            document.getElementById('lbl-ies-count').innerText = limitVal === 'ALL' ? `(${tIes.total})` : `(${tIes.k.length})`;
+            const altoIes = Math.max(280, tIes.k.length * (window.innerWidth < 768 ? 40 : 35)); // Mas espacio en movil para touch
             document.getElementById('grafico-instituciones').style.height = `${altoIes}px`;
-            Plotly.newPlot('grafico-instituciones', [{ type: 'bar', orientation: 'h', customdata: tIes.k.slice().reverse(), y: tIes.k.slice().reverse(), x: tIes.v.slice().reverse(), text: tIes.v.slice().reverse().map(v => v.toLocaleString()), textposition: 'auto', marker: { color: '#0ea5e9' } }], { ...layout, margin:{l: 10, t:10, b:20, r:20}, yaxis: { automargin: true } }, confGen); 
+            
+            // Truncar textos largos para móviles
+            const truncar = str => window.innerWidth < 768 && str.length > 20 ? str.substring(0, 18) + '...' : str;
+            
+            Plotly.newPlot('grafico-instituciones', [{ type: 'bar', orientation: 'h', customdata: tIes.k.slice().reverse(), y: tIes.k.slice().reverse().map(truncar), x: tIes.v.slice().reverse(), text: tIes.v.slice().reverse().map(v => v.toLocaleString()), textposition: 'auto', marker: { color: '#0ea5e9' } }], { ...layout, margin:{l: 10, t:10, b:20, r:20}, yaxis: { automargin: true } }, confGen); 
             bindPlotlyClick('grafico-instituciones', 'ies', d => d.points[0].customdata);
 
             // 4. PROGRAMAS
             let tProg = getTop(agg.prog, numLimit);
-            document.getElementById('lbl-prog-count').innerText = limitVal === 'ALL' ? `(Todos: ${tProg.total})` : `(Mostrando ${tProg.k.length})`;
-            const altoProg = Math.max(280, tProg.k.length * 35);
+            document.getElementById('lbl-prog-count').innerText = limitVal === 'ALL' ? `(${tProg.total})` : `(${tProg.k.length})`;
+            const altoProg = Math.max(280, tProg.k.length * (window.innerWidth < 768 ? 40 : 35));
             document.getElementById('grafico-programas').style.height = `${altoProg}px`;
-            Plotly.newPlot('grafico-programas', [{ type: 'bar', orientation: 'h', customdata: tProg.k.slice().reverse(), y: tProg.k.slice().reverse(), x: tProg.v.slice().reverse(), text: tProg.v.slice().reverse().map(v => v.toLocaleString()), textposition: 'auto', marker: { color: '#8b5cf6' } }], { ...layout, margin:{l: 10, t:10, b:20, r:20}, yaxis: { automargin: true } }, confGen);
+            Plotly.newPlot('grafico-programas', [{ type: 'bar', orientation: 'h', customdata: tProg.k.slice().reverse(), y: tProg.k.slice().reverse().map(truncar), x: tProg.v.slice().reverse(), text: tProg.v.slice().reverse().map(v => v.toLocaleString()), textposition: 'auto', marker: { color: '#8b5cf6' } }], { ...layout, margin:{l: 10, t:10, b:20, r:20}, yaxis: { automargin: true } }, confGen);
             bindPlotlyClick('grafico-programas', 'programa', d => d.points[0].customdata);
 
-            // 5. DONAS
-            const donutLyt = { ...layout, margin: {t: 0, b:0, l:0, r:0}, showlegend: true, legend: {orientation: 'v', x: 0.9, y: 0.5} };
+            // 5. DONAS (Ajustadas para celular con leyenda horizontal abajo)
+            const donutLyt = { 
+                ...layout, margin: {t: 10, b: window.innerWidth < 768 ? 40 : 10, l:10, r:10}, showlegend: true, 
+                legend: window.innerWidth < 768 
+                    ? { orientation: 'h', x: 0.5, y: -0.2, xanchor: 'center', yanchor: 'top', font: {size: 8} } 
+                    : { orientation: 'v', x: 1, y: 0.5 }
+            };
             Plotly.newPlot('grafico-nivel', [{ labels: Object.keys(agg.nivel), values: Object.values(agg.nivel), type: 'pie', hole: 0.65, textinfo: 'percent', textposition: 'inside', marker:{colors:['#f59e0b','#ec4899','#3b82f6', '#10b981']} }], donutLyt, confGen);
             bindPlotlyClick('grafico-nivel', 'nivel', d => d.points[0].label);
             Plotly.newPlot('grafico-metodologia', [{ labels: Object.keys(agg.metod), values: Object.values(agg.metod), type: 'pie', hole: 0.65, textinfo: 'percent', textposition: 'inside', marker:{colors:['#10b981','#6366f1', '#f43f5e']} }], donutLyt, confGen);
@@ -525,4 +493,3 @@
     </script>
 </body>
 </html>
-
