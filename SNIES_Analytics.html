@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Dashboard Analítico Educativo - Multi-Área</title>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -16,173 +18,268 @@
 
     <style>
         /* --- BASE Y TIPOGRAFÍA --- */
-        body { 
-            background-color: #f8fafc; 
-            font-family: 'Inter', sans-serif; 
-            overflow-x: hidden; 
-            display: flex; 
-            flex-direction: column; 
-            min-height: 100vh; 
+        body {
+            background-color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
             /* Esto hace que las fuentes se vean súper nítidas (Estilo Mac/iOS) */
-            -webkit-font-smoothing: antialiased; 
-            -moz-osx-font-smoothing: grayscale; 
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-        
+
         /* --- TARJETAS (CARDS) --- */
-        .pbi-card { 
-            background: #ffffff; 
-            border-radius: 12px; /* Un poco más redondo para un look moderno */
-            border: 1px solid #e2e8f0; /* Borde más sutil */
+        .pbi-card {
+            background: #ffffff;
+            border-radius: 12px;
+            /* Un poco más redondo para un look moderno */
+            border: 1px solid #e2e8f0;
+            /* Borde más sutil */
             /* Sombra más elegante y difuminada */
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02); 
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden; 
-            position: relative; 
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .pbi-card:hover { 
+
+        .pbi-card:hover {
             /* Sombra que da sensación de "flotar" al pasar el mouse */
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04); 
-            border-color: #cbd5e1; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+            border-color: #cbd5e1;
             transform: translateY(-1px);
         }
-        
-        .pbi-title { 
-            font-size: 0.9rem; 
-            font-weight: 600; 
-            color: #1e293b; 
-            padding: 14px 18px 10px 18px; 
-            letter-spacing: -0.01em; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-bottom: 1px solid #f1f5f9; /* Separa el título del contenido */
-            gap: 8px; 
+
+        .pbi-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #1e293b;
+            padding: 14px 18px 10px 18px;
+            letter-spacing: -0.01em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f1f5f9;
+            /* Separa el título del contenido */
+            gap: 8px;
         }
-        
+
         /* --- KPIs --- */
-        .kpi-box { padding: 18px; text-align: left; justify-content: center; }
-        .kpi-value { 
-            font-size: 1.85rem; 
-            font-weight: 800; /* Extra bold para que el número impacte */
-            color: #0f172a; 
-            line-height: 1.1; 
-            letter-spacing: -0.03em; /* Números un poco más juntos */
-            margin-top: 6px; 
+        .kpi-box {
+            padding: 18px;
+            text-align: left;
+            justify-content: center;
         }
-        @media (min-width: 768px) { .kpi-value { font-size: 2.25rem; } }
-        
-        .kpi-label { 
-            font-size: 0.75rem; 
-            color: #64748b; 
-            text-transform: uppercase; 
-            font-weight: 700; 
-            margin-bottom: 2px; 
-            letter-spacing: 0.08em; /* Más espacio entre letras en mayúsculas */
-        }
-        .kpi-sub { font-size: 0.7rem; color: #94a3b8; margin-top: 6px; font-weight: 500; }
 
-        .chart-scroll-wrapper { flex: 1 1 auto; width: 100%; height: 100%; overflow-y: auto; overflow-x: hidden; position: relative; min-height: 0; min-width: 0; display: block; padding-bottom: 5px; }
-        
-        /* --- CONTROLES Y SELECTORES --- */
-        select { 
-            background-color: #ffffff; 
-            border: 1px solid #cbd5e1; 
-            border-radius: 8px; 
-            padding: 8px 12px; 
-            width: 100%; 
-            outline: none; 
-            font-size: 0.85rem; 
-            font-weight: 500; 
-            color: #334155; 
-            cursor: pointer; 
-            transition: all 0.2s ease; 
-            text-overflow: ellipsis; 
-            white-space: nowrap; 
-            overflow: hidden; 
+        .kpi-value {
+            font-size: 1.85rem;
+            font-weight: 800;
+            /* Extra bold para que el número impacte */
+            color: #0f172a;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            /* Números un poco más juntos */
+            margin-top: 6px;
         }
-        select:hover { border-color: #94a3b8; }
-        select:focus { 
-            border-color: #3b82f6; 
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); 
-        }
-        
-        .dataset-selector { 
-            font-size: 0.95rem; 
-            font-weight: 700; 
-            color: #0f172a; 
-            border: 1px solid transparent; 
-            padding: 6px 12px; 
-            border-radius: 8px; 
-            background-color: #f1f5f9; 
-            cursor: pointer; 
-            transition: all 0.2s ease; 
-            appearance: none; 
-            -webkit-appearance: none; 
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); 
-            background-repeat: no-repeat; 
-            background-position: right 10px center; 
-            background-size: 1.1em; 
-            padding-right: 36px; 
-            max-width: 200px; 
-            text-overflow: ellipsis; 
-        }
-        .dataset-selector:hover { background-color: #e2e8f0; }
-        @media (min-width: 768px) { .dataset-selector { font-size: 1.25rem; max-width: none; } }
 
-        .viz-selector { 
-            border: 1px solid #e2e8f0; 
-            border-radius: 6px; 
-            padding: 4px 8px; 
-            font-size: 0.75rem; 
-            font-weight: 600; 
-            background: #f8fafc; 
-            color: #475569; 
-            width: auto; 
-            min-width: 120px; 
+        @media (min-width: 768px) {
+            .kpi-value {
+                font-size: 2.25rem;
+            }
         }
-        .viz-selector:focus { border-color: #94a3b8; box-shadow: none; }
 
-        /* --- TABLAS (DATAGRID) --- */
-        .table-container { max-height: 350px; overflow-y: auto; overflow-x: auto; font-size: 0.85rem; width: 100%; border-radius: 0 0 12px 12px; }
-        th { 
-            position: sticky; 
-            top: 0; 
-            background: #f8fafc; 
-            font-weight: 700; 
-            color: #475569; 
-            text-transform: uppercase; 
-            font-size: 0.75rem; 
-            padding: 12px 16px; 
-            border-bottom: 2px solid #e2e8f0; 
-            z-index: 10; 
-            white-space: nowrap; 
-            letter-spacing: 0.05em;
-            /* Sutil sombra bajo el header al hacer scroll */
-            box-shadow: 0 1px 2px 0 rgba(0,0,0,0.02);
+        .kpi-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 2px;
+            letter-spacing: 0.08em;
+            /* Más espacio entre letras en mayúsculas */
         }
-        td { 
-            padding: 12px 16px; 
-            border-bottom: 1px solid #f1f5f9; 
-            color: #334155; 
-            white-space: nowrap; 
+
+        .kpi-sub {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin-top: 6px;
             font-weight: 500;
         }
-        tr:hover td { background-color: #f8fafc; color: #0f172a; }
-        
+
+        .chart-scroll-wrapper {
+            flex: 1 1 auto;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 0;
+            min-width: 0;
+            display: block;
+            padding-bottom: 5px;
+        }
+
+        /* --- CONTROLES Y SELECTORES --- */
+        select {
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 8px 12px;
+            width: 100%;
+            outline: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        select:hover {
+            border-color: #94a3b8;
+        }
+
+        select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .dataset-selector {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #0f172a;
+            border: 1px solid transparent;
+            padding: 6px 12px;
+            border-radius: 8px;
+            background-color: #f1f5f9;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 1.1em;
+            padding-right: 36px;
+            max-width: 200px;
+            text-overflow: ellipsis;
+        }
+
+        .dataset-selector:hover {
+            background-color: #e2e8f0;
+        }
+
+        @media (min-width: 768px) {
+            .dataset-selector {
+                font-size: 1.25rem;
+                max-width: none;
+            }
+        }
+
+        .viz-selector {
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: #f8fafc;
+            color: #475569;
+            width: auto;
+            min-width: 120px;
+        }
+
+        .viz-selector:focus {
+            border-color: #94a3b8;
+            box-shadow: none;
+        }
+
+        /* --- TABLAS (DATAGRID) --- */
+        .table-container {
+            max-height: 350px;
+            overflow-y: auto;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            width: 100%;
+            border-radius: 0 0 12px 12px;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            background: #f8fafc;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            padding: 12px 16px;
+            border-bottom: 2px solid #e2e8f0;
+            z-index: 10;
+            white-space: nowrap;
+            letter-spacing: 0.05em;
+            /* Sutil sombra bajo el header al hacer scroll */
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        tr:hover td {
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+
         /* --- SCROLLBARS (INVISIBLES PERO ELEGANTES) --- */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
         /* --- FOOTER --- */
-        .footer-rights { background-color: #0f172a; color: #94a3b8; font-size: 0.8rem; padding: 20px; text-align: center; margin-top: auto; font-weight: 400; }
-        .footer-rights a { color: #38bdf8; text-decoration: none; font-weight: 600; transition: color 0.2s; }
-        .footer-rights a:hover { color: #7dd3fc; }
+        .footer-rights {
+            background-color: #0f172a;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            padding: 20px;
+            text-align: center;
+            margin-top: auto;
+            font-weight: 400;
+        }
+
+        .footer-rights a {
+            color: #38bdf8;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .footer-rights a:hover {
+            color: #7dd3fc;
+        }
     </style>
 </head>
+
 <body class="text-slate-800">
 
     <script>
@@ -193,42 +290,80 @@
         ];
     </script>
 
-    <header class="bg-white border-b border-slate-200 px-3 md:px-5 py-3 flex flex-wrap gap-3 justify-between items-center shrink-0 z-20 shadow-sm">
+    <header
+        class="bg-white border-b border-slate-200 px-3 md:px-5 py-3 flex flex-wrap gap-3 justify-between items-center shrink-0 z-20 shadow-sm">
         <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-gradient-to-br from-blue-700 to-indigo-800 rounded-xl flex items-center justify-center text-white shadow-md shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            <div
+                class="w-10 h-10 bg-gradient-to-br from-blue-700 to-indigo-800 rounded-xl flex items-center justify-center text-white shadow-md shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
             </div>
             <div class="flex flex-col min-w-0">
-                <p class="text-[0.65rem] text-slate-500 uppercase font-bold tracking-widest mb-0.5">SNIES Analytics</p>
+                <p class="text-[0.65rem] text-slate-500 uppercase font-bold tracking-widest mb-0.5">Centro de
+                    Inteligencia Académica</p>
                 <div class="flex items-center gap-2">
                     <span class="text-slate-400 text-xs font-medium hidden md:inline">Área:</span>
-                    <select id="selector-dataset" onchange="cambiarDataset(this.value)" class="dataset-selector"></select>
+                    <select id="selector-dataset" onchange="cambiarDataset(this.value)"
+                        class="dataset-selector"></select>
                 </div>
             </div>
         </div>
-        
+
         <div class="flex items-center">
-            <span id="indicador-carga" class="text-[0.7rem] md:text-xs text-blue-600 flex items-center gap-1.5 font-semibold animate-pulse bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
-                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <span id="indicador-carga"
+                class="text-[0.7rem] md:text-xs text-blue-600 flex items-center gap-1.5 font-semibold animate-pulse bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
+                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
                 Conectando...
             </span>
         </div>
     </header>
 
-    <div id="panel-filtros" class="bg-white border-b border-slate-200 px-3 md:px-5 py-3 shrink-0 z-10 transition-opacity duration-300 shadow-sm">
+    <div id="panel-filtros"
+        class="bg-white border-b border-slate-200 px-3 md:px-5 py-3 shrink-0 z-10 transition-opacity duration-300 shadow-sm">
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3">
-            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Año</label><select id="filtro-año" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
-            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Semestre</label><select id="filtro-semestre" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
-            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Departamento</label><select id="filtro-depto" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
-            <div class="min-w-0 sm:col-span-2 lg:col-span-1"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Institución (IES)</label><select id="filtro-ies" onchange="aplicarFiltros()"><option value="TODOS">Todas</option></select></div>
-            <div class="min-w-0 sm:col-span-2 lg:col-span-1"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Programa</label><select id="filtro-programa" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
-            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Sexo</label><select id="filtro-sexo" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
-            
+            <div class="min-w-0"><label
+                    class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Año</label><select
+                    id="filtro-año" onchange="aplicarFiltros()">
+                    <option value="TODOS">Todos</option>
+                </select></div>
+            <div class="min-w-0"><label
+                    class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Semestre</label><select
+                    id="filtro-semestre" onchange="aplicarFiltros()">
+                    <option value="TODOS">Todos</option>
+                </select></div>
+            <div class="min-w-0"><label
+                    class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Departamento</label><select
+                    id="filtro-depto" onchange="aplicarFiltros()">
+                    <option value="TODOS">Todos</option>
+                </select></div>
+            <div class="min-w-0 sm:col-span-2 lg:col-span-1"><label
+                    class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Institución
+                    (IES)</label><select id="filtro-ies" onchange="aplicarFiltros()">
+                    <option value="TODOS">Todas</option>
+                </select></div>
+            <div class="min-w-0 sm:col-span-2 lg:col-span-1"><label
+                    class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Programa</label><select
+                    id="filtro-programa" onchange="aplicarFiltros()">
+                    <option value="TODOS">Todos</option>
+                </select></div>
+            <div class="min-w-0"><label
+                    class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Sexo</label><select
+                    id="filtro-sexo" onchange="aplicarFiltros()">
+                    <option value="TODOS">Todos</option>
+                </select></div>
+
             <div class="min-w-0 col-span-2 sm:col-span-1">
                 <label class="block text-[0.65rem] font-bold text-blue-600 uppercase mb-1 truncate">Ver Top</label>
-                <select id="filtro-limite" onchange="aplicarFiltros()" class="border-blue-300 bg-blue-50 text-blue-800 font-bold">
+                <select id="filtro-limite" onchange="aplicarFiltros()"
+                    class="border-blue-300 bg-blue-50 text-blue-800 font-bold">
                     <option value="5">Top 5</option>
                     <option value="10" selected>Top 10</option>
                     <option value="20">Top 20</option>
@@ -236,39 +371,52 @@
                 </select>
             </div>
         </div>
-        
-        <div id="indicador-filtros-graficos" class="hidden mt-3 pt-2 border-t border-slate-100 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+
+        <div id="indicador-filtros-graficos"
+            class="hidden mt-3 pt-2 border-t border-slate-100 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div class="flex items-center gap-2 flex-wrap flex-1">
                 <span class="font-bold text-blue-700 flex items-center gap-1 text-[0.7rem] md:text-xs">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                    </svg>
                     Filtros Activos:
                 </span>
                 <span id="texto-filtros-graficos" class="flex gap-1.5 flex-wrap"></span>
-                <button onclick="limpiarFiltrosCruzados()" class="text-slate-500 hover:text-red-600 font-medium ml-1 transition-colors flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded text-[0.7rem] md:text-xs">
+                <button onclick="limpiarFiltrosCruzados()"
+                    class="text-slate-500 hover:text-red-600 font-medium ml-1 transition-colors flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded text-[0.7rem] md:text-xs">
                     Limpiar <span class="hidden sm:inline">Visuales</span>
                 </button>
             </div>
         </div>
     </div>
 
-<main class="flex-1 p-3 md:p-6 lg:p-8 opacity-0 transition-opacity duration-700 ease-in-out w-full mx-auto max-w-[1600px] pb-12" id="dashboard-content">
-        
+    <main
+        class="flex-1 p-3 md:p-6 lg:p-8 opacity-0 transition-opacity duration-700 ease-in-out w-full mx-auto max-w-[1600px] pb-12"
+        id="dashboard-content">
+
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-5 md:mb-6">
-            <div class="pbi-card kpi-box border-l-[5px] border-l-blue-500 bg-gradient-to-br from-blue-50/40 to-transparent">
+            <div
+                class="pbi-card kpi-box border-l-[5px] border-l-blue-500 bg-gradient-to-br from-blue-50/40 to-transparent">
                 <div class="kpi-label text-blue-600">Matrículas Totales</div>
                 <div class="kpi-value text-slate-900" id="kpi-matriculados">0</div>
             </div>
-            <div class="pbi-card kpi-box border-l-[5px] border-l-indigo-500 bg-gradient-to-br from-indigo-50/40 to-transparent">
+            <div
+                class="pbi-card kpi-box border-l-[5px] border-l-indigo-500 bg-gradient-to-br from-indigo-50/40 to-transparent">
                 <div class="kpi-label text-indigo-600">Instituciones (IES)</div>
                 <div class="kpi-value text-slate-900" id="kpi-ies">0</div>
             </div>
-            <div class="pbi-card kpi-box border-l-[5px] border-l-pink-500 bg-gradient-to-br from-pink-50/40 to-transparent relative">
+            <div
+                class="pbi-card kpi-box border-l-[5px] border-l-pink-500 bg-gradient-to-br from-pink-50/40 to-transparent relative">
                 <div class="kpi-label text-pink-600">Índice Feminidad</div>
                 <div class="kpi-value text-slate-900" id="kpi-paridad">0</div>
-                <div class="kpi-sub absolute bottom-3 right-4 text-pink-400/80 hidden sm:block">Mujeres x 100 Hombres</div>
+                <div class="kpi-sub absolute bottom-3 right-4 text-pink-400/80 hidden sm:block">Mujeres x 100 Hombres
+                </div>
                 <div class="kpi-sub sm:hidden">Mujeres x 100 Hombres</div>
             </div>
-            <div class="pbi-card kpi-box border-l-[5px] border-l-emerald-500 bg-gradient-to-br from-emerald-50/40 to-transparent">
+            <div
+                class="pbi-card kpi-box border-l-[5px] border-l-emerald-500 bg-gradient-to-br from-emerald-50/40 to-transparent">
                 <div class="kpi-label text-emerald-600">Precio Promedio</div>
                 <div class="kpi-value text-emerald-600 drop-shadow-sm" id="kpi-precio">$ 0</div>
             </div>
@@ -277,27 +425,34 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-5 md:mb-6">
             <div class="pbi-card h-[380px] lg:h-[420px]">
                 <div class="pbi-title flex-wrap sm:flex-nowrap">
-                    <span class="truncate w-full sm:w-auto">Evolución Histórica <span class="hidden sm:inline text-slate-400 font-medium ml-1">y % Crec.</span></span>
-                    <select id="mode-evolucion" onchange="aplicarFiltros()" class="viz-selector sm:w-auto mt-2 sm:mt-0 shadow-sm">
+                    <span class="truncate w-full sm:w-auto">Evolución Histórica <span
+                            class="hidden sm:inline text-slate-400 font-medium ml-1">y % Crec.</span></span>
+                    <select id="mode-evolucion" onchange="aplicarFiltros()"
+                        class="viz-selector sm:w-auto mt-2 sm:mt-0 shadow-sm">
                         <option value="TOTAL">Consolidado Total (YoY%)</option>
                         <option value="SEXO">Comparativa: Sexo</option>
                         <option value="METOD">Comparativa: Metodología</option>
                         <option value="SEMESTRE">Comparativa: Semestre</option>
                     </select>
                 </div>
-                <div class="chart-scroll-wrapper"><div id="grafico-evolucion" class="w-full h-full"></div></div>
+                <div class="chart-scroll-wrapper">
+                    <div id="grafico-evolucion" class="w-full h-full"></div>
+                </div>
             </div>
-            
+
             <div class="pbi-card h-[380px] lg:h-[420px]">
                 <div class="pbi-title flex-wrap sm:flex-nowrap">
                     <span class="truncate w-full sm:w-auto">Mapa de Concentración</span>
-                    <select id="map-mode" onchange="aplicarFiltros()" class="viz-selector sm:w-auto mt-2 sm:mt-0 shadow-sm">
+                    <select id="map-mode" onchange="aplicarFiltros()"
+                        class="viz-selector sm:w-auto mt-2 sm:mt-0 shadow-sm">
                         <option value="TOTAL">Totales Consolidados</option>
                         <option value="SEXO">Comparativa: Sexo</option>
                         <option value="METOD">Comparativa: Metodología</option>
                     </select>
                 </div>
-                <div class="chart-scroll-wrapper"><div id="mapa-colombia" class="w-full h-full"></div></div>
+                <div class="chart-scroll-wrapper">
+                    <div id="mapa-colombia" class="w-full h-full"></div>
+                </div>
             </div>
         </div>
 
@@ -305,48 +460,79 @@
             <div class="pbi-card h-[380px] lg:h-[420px]">
                 <div class="pbi-title flex-wrap sm:flex-nowrap">
                     <div class="flex items-center gap-2 truncate w-full sm:w-auto">
-                        Top IES 
-                        <span class="bg-slate-100 text-slate-500 py-0.5 px-2 rounded-full text-[0.7rem] font-semibold" id="lbl-ies-count"></span>
+                        Top IES
+                        <span class="bg-slate-100 text-slate-500 py-0.5 px-2 rounded-full text-[0.7rem] font-semibold"
+                            id="lbl-ies-count"></span>
                     </div>
-                    <select id="mode-ies" onchange="aplicarFiltros()" class="viz-selector sm:w-auto mt-2 sm:mt-0 shadow-sm">
+                    <select id="mode-ies" onchange="aplicarFiltros()"
+                        class="viz-selector sm:w-auto mt-2 sm:mt-0 shadow-sm">
                         <option value="TOTAL">Consolidado Total</option>
                         <option value="SEXO">Comparar: Sexo</option>
                         <option value="METOD">Comparar: Metodología</option>
                         <option value="SEMESTRE">Comparar: Semestre</option>
                     </select>
                 </div>
-                <div class="chart-scroll-wrapper"><div id="grafico-instituciones" class="w-full h-full"></div></div>
+                <div class="chart-scroll-wrapper">
+                    <div id="grafico-instituciones" class="w-full h-full"></div>
+                </div>
             </div>
-            
+
             <div class="pbi-card h-[380px] lg:h-[420px]">
                 <div class="pbi-title flex-wrap sm:flex-nowrap">
                     <div class="flex items-center gap-2 truncate w-full sm:w-auto">
-                        Top Programas 
-                        <span class="bg-slate-100 text-slate-500 py-0.5 px-2 rounded-full text-[0.7rem] font-semibold" id="lbl-prog-count"></span>
+                        Top Programas
+                        <span class="bg-slate-100 text-slate-500 py-0.5 px-2 rounded-full text-[0.7rem] font-semibold"
+                            id="lbl-prog-count"></span>
                     </div>
-                    <select id="mode-prog" onchange="aplicarFiltros()" class="viz-selector sm:w-auto mt-2 sm:mt-0 shadow-sm">
+                    <select id="mode-prog" onchange="aplicarFiltros()"
+                        class="viz-selector sm:w-auto mt-2 sm:mt-0 shadow-sm">
                         <option value="TOTAL">Consolidado Total</option>
                         <option value="SEXO">Comparar: Sexo</option>
                         <option value="METOD">Comparar: Metodología</option>
                         <option value="SEMESTRE">Comparar: Semestre</option>
                     </select>
                 </div>
-                <div class="chart-scroll-wrapper"><div id="grafico-programas" class="w-full h-full"></div></div>
+                <div class="chart-scroll-wrapper">
+                    <div id="grafico-programas" class="w-full h-full"></div>
+                </div>
             </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6 mb-5 md:mb-6">
-            <div class="pbi-card h-[340px] hover:border-blue-200"><div class="pbi-title text-slate-700">Nivel Académico</div><div class="chart-scroll-wrapper"><div id="grafico-nivel" class="w-full h-full"></div></div></div>
-            <div class="pbi-card h-[340px] hover:border-emerald-200"><div class="pbi-title text-slate-700">Metodología</div><div class="chart-scroll-wrapper"><div id="grafico-metodologia" class="w-full h-full"></div></div></div>
-            <div class="pbi-card h-[340px] hover:border-pink-200"><div class="pbi-title text-slate-700">Análisis de Sexo</div><div class="chart-scroll-wrapper"><div id="grafico-sexo" class="w-full h-full"></div></div></div>
-            <div class="pbi-card h-[340px] hover:border-amber-200"><div class="pbi-title text-slate-700">Semestre</div><div class="chart-scroll-wrapper"><div id="grafico-semestre" class="w-full h-full"></div></div></div>
+            <div class="pbi-card h-[340px] hover:border-blue-200">
+                <div class="pbi-title text-slate-700">Nivel Académico</div>
+                <div class="chart-scroll-wrapper">
+                    <div id="grafico-nivel" class="w-full h-full"></div>
+                </div>
+            </div>
+            <div class="pbi-card h-[340px] hover:border-emerald-200">
+                <div class="pbi-title text-slate-700">Metodología</div>
+                <div class="chart-scroll-wrapper">
+                    <div id="grafico-metodologia" class="w-full h-full"></div>
+                </div>
+            </div>
+            <div class="pbi-card h-[340px] hover:border-pink-200">
+                <div class="pbi-title text-slate-700">Análisis de Sexo</div>
+                <div class="chart-scroll-wrapper">
+                    <div id="grafico-sexo" class="w-full h-full"></div>
+                </div>
+            </div>
+            <div class="pbi-card h-[340px] hover:border-amber-200">
+                <div class="pbi-title text-slate-700">Semestre</div>
+                <div class="chart-scroll-wrapper">
+                    <div id="grafico-semestre" class="w-full h-full"></div>
+                </div>
+            </div>
         </div>
 
         <div class="pbi-card mb-5 md:mb-6 h-[420px]">
             <div class="pbi-title bg-slate-50/50">
-                <span class="text-slate-800">Comparativa y Flujo entre Variables Categóricas <span class="text-slate-400 font-normal hidden md:inline">(Nivel → Metodología → Sexo)</span></span>
+                <span class="text-slate-800">Comparativa y Flujo entre Variables Categóricas <span
+                        class="text-slate-400 font-normal hidden md:inline">(Nivel → Metodología → Sexo)</span></span>
             </div>
-            <div class="chart-scroll-wrapper p-2"><div id="grafico-parcats" class="w-full h-full"></div></div>
+            <div class="chart-scroll-wrapper p-2">
+                <div id="grafico-parcats" class="w-full h-full"></div>
+            </div>
         </div>
 
         <div class="pbi-card shadow-sm">
@@ -372,15 +558,22 @@
     </main>
 
     <footer class="bg-slate-900 border-t border-slate-800 mt-auto">
-        <div class="max-w-[1600px] mx-auto px-4 py-6 md:py-8 flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-4">
+        <div
+            class="max-w-[1600px] mx-auto px-4 py-6 md:py-8 flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-4">
             <div class="text-slate-400 text-sm">
-                <p class="font-medium text-slate-300">&copy; <span id="current-year"></span> Todos los derechos reservados.</p>
+                <p class="font-medium text-slate-300">&copy; <span id="current-year"></span> Todos los derechos
+                    reservados.</p>
                 <p class="mt-1 text-xs">Desarrollado para análisis avanzado de datos educativos.</p>
             </div>
             <div class="text-slate-400 text-sm">
                 <p>Contacto soporte e incidencias:</p>
-                <a href="mailto:dpabon180@unab.edu.co" class="inline-flex items-center gap-2 mt-1 text-sky-400 hover:text-sky-300 font-medium transition-colors duration-200">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                <a href="mailto:dpabon180@unab.edu.co"
+                    class="inline-flex items-center gap-2 mt-1 text-sky-400 hover:text-sky-300 font-medium transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
                     dpabon180@unab.edu.co
                 </a>
             </div>
@@ -390,25 +583,25 @@
     <script>
         document.getElementById('current-year').textContent = new Date().getFullYear();
 
-        let datosGlobales = []; 
-        let filtrosCruzados = {}; 
+        let datosGlobales = [];
+        let filtrosCruzados = {};
         let datasetActual = null;
         let geojsonData = null;
 
         const coordsDeptos = {
-            "bogota": { lat: 4.6097, lon: -74.0817 }, "antioquia": { lat: 6.2518, lon: -75.5636 }, 
-            "valle del cauca": { lat: 3.4516, lon: -76.5320 }, "atlantico": { lat: 10.9685, lon: -74.7813 }, 
-            "bolivar": { lat: 10.3910, lon: -75.4794 }, "santander": { lat: 7.1193, lon: -73.1227 }, 
-            "norte de santander": { lat: 7.8939, lon: -72.5078 }, "cundinamarca": { lat: 4.6678, lon: -74.0820 }, 
-            "boyaca": { lat: 5.5353, lon: -73.3678 }, "tolima": { lat: 4.4389, lon: -75.2322 }, 
-            "huila": { lat: 2.9273, lon: -75.2819 }, "cauca": { lat: 2.4382, lon: -76.6132 }, 
-            "narino": { lat: 1.2136, lon: -77.2811 }, "magdalena": { lat: 11.2408, lon: -74.1990 }, 
-            "cesar": { lat: 10.4631, lon: -73.2532 }, "cordoba": { lat: 8.7480, lon: -75.8814 }, 
-            "sucre": { lat: 9.3047, lon: -75.3978 }, "caldas": { lat: 5.0689, lon: -75.5174 }, 
-            "risaralda": { lat: 4.8133, lon: -75.6961 }, "quindio": { lat: 4.5339, lon: -75.6811 }, 
-            "meta": { lat: 4.1420, lon: -73.6266 }, "choco": { lat: 5.6919, lon: -76.6583 }, 
-            "la guajira": { lat: 11.5444, lon: -72.9069 }, "putumayo": { lat: 1.1511, lon: -76.6531 }, 
-            "caqueta": { lat: 1.6135, lon: -75.6040 }, "casanare": { lat: 5.3378, lon: -72.3959 }, 
+            "bogota": { lat: 4.6097, lon: -74.0817 }, "antioquia": { lat: 6.2518, lon: -75.5636 },
+            "valle del cauca": { lat: 3.4516, lon: -76.5320 }, "atlantico": { lat: 10.9685, lon: -74.7813 },
+            "bolivar": { lat: 10.3910, lon: -75.4794 }, "santander": { lat: 7.1193, lon: -73.1227 },
+            "norte de santander": { lat: 7.8939, lon: -72.5078 }, "cundinamarca": { lat: 4.6678, lon: -74.0820 },
+            "boyaca": { lat: 5.5353, lon: -73.3678 }, "tolima": { lat: 4.4389, lon: -75.2322 },
+            "huila": { lat: 2.9273, lon: -75.2819 }, "cauca": { lat: 2.4382, lon: -76.6132 },
+            "narino": { lat: 1.2136, lon: -77.2811 }, "magdalena": { lat: 11.2408, lon: -74.1990 },
+            "cesar": { lat: 10.4631, lon: -73.2532 }, "cordoba": { lat: 8.7480, lon: -75.8814 },
+            "sucre": { lat: 9.3047, lon: -75.3978 }, "caldas": { lat: 5.0689, lon: -75.5174 },
+            "risaralda": { lat: 4.8133, lon: -75.6961 }, "quindio": { lat: 4.5339, lon: -75.6811 },
+            "meta": { lat: 4.1420, lon: -73.6266 }, "choco": { lat: 5.6919, lon: -76.6583 },
+            "la guajira": { lat: 11.5444, lon: -72.9069 }, "putumayo": { lat: 1.1511, lon: -76.6531 },
+            "caqueta": { lat: 1.6135, lon: -75.6040 }, "casanare": { lat: 5.3378, lon: -72.3959 },
             "arauca": { lat: 7.0847, lon: -70.7591 }, "san andres": { lat: 12.5847, lon: -81.7006 }
         };
 
@@ -421,17 +614,17 @@
         const coloresFallback = ['#8b5cf6', '#f59e0b', '#14b8a6', '#06b6d4', '#f43f5e', '#3b82f6', '#10b981'];
 
         function normDepto(n) {
-            if(!n) return '';
+            if (!n) return '';
             let str = n.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().trim();
-            if(str.includes("BOGOTA")) return "BOGOTA";
-            if(str.includes("VALLE")) return "VALLE DEL CAUCA";
-            if(str.includes("ANDRES") || str.includes("PROVIDENCIA")) return "SAN ANDRES";
-            if(str.includes("NARI")) return "NARINO";
-            if(str.includes("GUAJIRA")) return "LA GUAJIRA";
+            if (str.includes("BOGOTA")) return "BOGOTA";
+            if (str.includes("VALLE")) return "VALLE DEL CAUCA";
+            if (str.includes("ANDRES") || str.includes("PROVIDENCIA")) return "SAN ANDRES";
+            if (str.includes("NARI")) return "NARINO";
+            if (str.includes("GUAJIRA")) return "LA GUAJIRA";
             return str;
         }
 
-        window.onload = async function() {
+        window.onload = async function () {
             const selector = document.getElementById('selector-dataset');
             MIS_BASES_DE_DATOS.forEach((db, index) => {
                 let opcion = document.createElement('option');
@@ -441,7 +634,7 @@
             try {
                 const geoRes = await fetch('https://gist.githubusercontent.com/john-guerra/43c7656821069d00dcbc/raw/be6a6e239cd5b5b803c6e7c2ec405b793a9064dd/Colombia.geo.json');
                 geojsonData = await geoRes.json();
-            } catch(e) { console.warn("Fallo carga de GeoJSON de Colombia."); }
+            } catch (e) { console.warn("Fallo carga de GeoJSON de Colombia."); }
 
             cambiarDataset(0);
 
@@ -454,7 +647,7 @@
             const charts = ['mapa-colombia', 'grafico-evolucion', 'grafico-instituciones', 'grafico-programas', 'grafico-nivel', 'grafico-metodologia', 'grafico-sexo', 'grafico-semestre', 'grafico-parcats'];
             charts.forEach(id => {
                 const el = document.getElementById(id);
-                if(el && el.data) {
+                if (el && el.data) {
                     Plotly.Plots.resize(el);
                 }
             });
@@ -465,7 +658,7 @@
             document.getElementById('dashboard-content').classList.remove('opacity-100');
             document.getElementById('dashboard-content').classList.add('opacity-0');
             document.getElementById('indicador-carga').innerHTML = `⏳ Cargando...`;
-            
+
             filtrosCruzados = {};
             document.getElementById('indicador-filtros-graficos').classList.add('hidden');
             ['año', 'semestre', 'depto', 'ies', 'programa', 'sexo'].forEach(id => document.getElementById(`filtro-${id}`).innerHTML = '<option value="TODOS">Todos</option>');
@@ -475,15 +668,15 @@
                 const res = await fetch(urlGithub);
                 if (res.ok) {
                     const arrayBuffer = await res.arrayBuffer();
-                    const libro = XLSX.read(new Uint8Array(arrayBuffer), {type: 'array'});
-                    procesarDatos(XLSX.utils.sheet_to_json(libro.Sheets[libro.SheetNames[0]], {defval: ""}));
+                    const libro = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
+                    procesarDatos(XLSX.utils.sheet_to_json(libro.Sheets[libro.SheetNames[0]], { defval: "" }));
                 } else alert("Error cargando dataset.");
             } catch (error) { alert("Error de red cargando el archivo."); }
         }
 
         function procesarDatos(datosCrudos) {
             if (!datosCrudos || datosCrudos.length === 0) return;
-            
+
             const keys = Object.keys(datosCrudos[0]).map(k => k.trim());
             const findKey = (searchStrings) => keys.find(k => searchStrings.some(s => k.toUpperCase().includes(s))) || keys.find(k => k.toUpperCase().includes(searchStrings[0]));
 
@@ -512,7 +705,7 @@
                     sexo: col.sexo && f[col.sexo] ? String(f[col.sexo]).trim() : 'Sin dato',
                     metodologia: col.metod && f[col.metod] ? String(f[col.metod]).trim() : 'Sin dato',
                     matriculados: col.matr ? (parseInt(f[col.matr]) || 0) : 0,
-                    precio: col.precio && f[col.precio] ? parseFloat(String(f[col.precio]).replace(/[^0-9.-]+/g,"")) : 0,
+                    precio: col.precio && f[col.precio] ? parseFloat(String(f[col.precio]).replace(/[^0-9.-]+/g, "")) : 0,
                     url: col.url && f[col.url] ? String(f[col.url]).trim() : ''
                 };
             });
@@ -520,7 +713,7 @@
             document.getElementById('indicador-carga').innerHTML = `✅ Datos listos`;
             document.getElementById('dashboard-content').classList.remove('opacity-0');
             document.getElementById('dashboard-content').classList.add('opacity-100');
-            
+
             aplicarFiltros();
             setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 600);
         }
@@ -528,7 +721,7 @@
         function toggleFiltroCruzado(tipo, valor, isMulti) {
             if (!filtrosCruzados[tipo]) filtrosCruzados[tipo] = [];
             const index = filtrosCruzados[tipo].indexOf(valor);
-            
+
             if (isMulti) {
                 if (index > -1) filtrosCruzados[tipo].splice(index, 1);
                 else filtrosCruzados[tipo].push(valor);
@@ -561,7 +754,7 @@
                     return pasa;
                 });
                 let unicos = [...new Set(datosParciales.map(d => d[tipoActual]))].filter(o => o !== 'Sin dato').sort();
-                if (tipoActual === 'año' || tipoActual === 'semestre') unicos.reverse(); 
+                if (tipoActual === 'año' || tipoActual === 'semestre') unicos.reverse();
                 const select = document.getElementById(`filtro-${tipoActual}`);
                 let html = '<option value="TODOS">Todos</option>';
                 unicos.forEach(op => html += `<option value="${op}">${op}</option>`);
@@ -594,10 +787,10 @@
 
         function bindPlotlyClick(id, tipoFiltro, extractFn) {
             const div = document.getElementById(id);
-            if(div.removeAllListeners) div.removeAllListeners('plotly_click');
-            div.on('plotly_click', d => { 
-                const v = extractFn(d); 
-                if(v) toggleFiltroCruzado(tipoFiltro, v, d.event.ctrlKey || d.event.shiftKey || d.event.metaKey); 
+            if (div.removeAllListeners) div.removeAllListeners('plotly_click');
+            div.on('plotly_click', d => {
+                const v = extractFn(d);
+                if (v) toggleFiltroCruzado(tipoFiltro, v, d.event.ctrlKey || d.event.shiftKey || d.event.metaKey);
             });
         }
 
@@ -605,11 +798,11 @@
         function crearTracesApilados(objetoDetalle, topKeys, variableCruce) {
             let subkeys = new Set();
             topKeys.forEach(k => {
-                if(objetoDetalle[k] && objetoDetalle[k][variableCruce]) {
+                if (objetoDetalle[k] && objetoDetalle[k][variableCruce]) {
                     Object.keys(objetoDetalle[k][variableCruce]).forEach(sk => subkeys.add(sk));
                 }
             });
-            
+
             let traces = [];
             let paleta = coloresVisuales[variableCruce.toUpperCase()] || {};
             let isMobile = window.innerWidth < 768;
@@ -638,55 +831,55 @@
         function dibujarDashboard(datos) {
             let tMatriculados = 0, hombres = 0, mujeres = 0, sumPrecio = 0, countPrecio = 0;
             let agg = { depto: {}, prog: {}, ies: {}, año: {}, semestre: {}, nivel: {}, sexo: {}, metod: {} };
-            
+
             let aggMap = {};
             let parcatsAgg = {};
             let datosTabla = {};
 
             // Diccionarios detallados para los nuevos gráficos con Cruce de Variables
-            let aggEvolDetalle = {}; 
+            let aggEvolDetalle = {};
             let aggIesDetalle = {};
             let aggProgDetalle = {};
 
             datos.forEach(d => {
                 tMatriculados += d.matriculados;
-                
+
                 let strSexo = d.sexo.toUpperCase();
                 let esHombre = strSexo.includes('MASC') || strSexo === 'HOMBRE' || strSexo === 'M';
                 let esMujer = strSexo.includes('FEM') || strSexo === 'MUJER' || strSexo === 'F';
-                
+
                 let valSexo = esMujer ? 'Mujeres' : 'Hombres';
                 let valMetod = d.metodologia.toUpperCase().includes('PRESENCIAL') ? 'Presencial' : 'Virtual/Dist.';
                 let valSem = d.semestre;
 
-                if(esHombre) hombres += d.matriculados;
-                if(esMujer) mujeres += d.matriculados;
+                if (esHombre) hombres += d.matriculados;
+                if (esMujer) mujeres += d.matriculados;
                 let esPresencial = d.metodologia.toUpperCase().includes('PRESENCIAL');
-                
-                if(d.precio > 0 && !isNaN(d.precio)) { sumPrecio += d.precio; countPrecio++; }
-                
+
+                if (d.precio > 0 && !isNaN(d.precio)) { sumPrecio += d.precio; countPrecio++; }
+
                 // Agg básico
                 ['depto', 'programa', 'ies', 'año', 'semestre', 'nivel', 'sexo', 'metodologia'].forEach(k => {
-                    const prop = k==='programa'?'prog':k==='metodologia'?'metod':k;
+                    const prop = k === 'programa' ? 'prog' : k === 'metodologia' ? 'metod' : k;
                     agg[prop][d[k]] = (agg[prop][d[k]] || 0) + d.matriculados;
                 });
-                
+
                 // Agg Detallado Evolución (Años)
-                if(!aggEvolDetalle[d.año]) aggEvolDetalle[d.año] = { total: 0, sexo: {}, metod: {}, semestre: {} };
+                if (!aggEvolDetalle[d.año]) aggEvolDetalle[d.año] = { total: 0, sexo: {}, metod: {}, semestre: {} };
                 aggEvolDetalle[d.año].total += d.matriculados;
                 aggEvolDetalle[d.año].sexo[valSexo] = (aggEvolDetalle[d.año].sexo[valSexo] || 0) + d.matriculados;
                 aggEvolDetalle[d.año].metod[valMetod] = (aggEvolDetalle[d.año].metod[valMetod] || 0) + d.matriculados;
                 aggEvolDetalle[d.año].semestre[valSem] = (aggEvolDetalle[d.año].semestre[valSem] || 0) + d.matriculados;
 
                 // Agg Detallado IES
-                if(!aggIesDetalle[d.ies]) aggIesDetalle[d.ies] = { total: 0, sexo: {}, metod: {}, semestre: {} };
+                if (!aggIesDetalle[d.ies]) aggIesDetalle[d.ies] = { total: 0, sexo: {}, metod: {}, semestre: {} };
                 aggIesDetalle[d.ies].total += d.matriculados;
                 aggIesDetalle[d.ies].sexo[valSexo] = (aggIesDetalle[d.ies].sexo[valSexo] || 0) + d.matriculados;
                 aggIesDetalle[d.ies].metod[valMetod] = (aggIesDetalle[d.ies].metod[valMetod] || 0) + d.matriculados;
                 aggIesDetalle[d.ies].semestre[valSem] = (aggIesDetalle[d.ies].semestre[valSem] || 0) + d.matriculados;
 
                 // Agg Detallado Programas
-                if(!aggProgDetalle[d.programa]) aggProgDetalle[d.programa] = { total: 0, sexo: {}, metod: {}, semestre: {} };
+                if (!aggProgDetalle[d.programa]) aggProgDetalle[d.programa] = { total: 0, sexo: {}, metod: {}, semestre: {} };
                 aggProgDetalle[d.programa].total += d.matriculados;
                 aggProgDetalle[d.programa].sexo[valSexo] = (aggProgDetalle[d.programa].sexo[valSexo] || 0) + d.matriculados;
                 aggProgDetalle[d.programa].metod[valMetod] = (aggProgDetalle[d.programa].metod[valMetod] || 0) + d.matriculados;
@@ -709,448 +902,443 @@
 
                 // Agg Tabla
                 let keyTabla = `${d.ies}|${d.programa}|${d.depto}`;
-                if(!datosTabla[keyTabla]) datosTabla[keyTabla] = { ies: d.ies, prog: d.programa, depto: d.depto, matr: 0, precio: d.precio, url: d.url };
+                if (!datosTabla[keyTabla]) datosTabla[keyTabla] = { ies: d.ies, prog: d.programa, depto: d.depto, matr: 0, precio: d.precio, url: d.url };
                 datosTabla[keyTabla].matr += d.matriculados;
             });
 
             document.getElementById('kpi-matriculados').innerText = tMatriculados.toLocaleString('es-CO');
-            document.getElementById('kpi-ies').innerText = Object.keys(agg.ies).filter(k=>k!=='Sin dato').length.toLocaleString('es-CO');
+            document.getElementById('kpi-ies').innerText = Object.keys(agg.ies).filter(k => k !== 'Sin dato').length.toLocaleString('es-CO');
             document.getElementById('kpi-paridad').innerText = hombres > 0 ? ((mujeres / hombres) * 100).toFixed(1) : 0;
             let precioPromedio = countPrecio > 0 ? (sumPrecio / countPrecio) : 0;
             document.getElementById('kpi-precio').innerText = precioPromedio > 0 ? `$ ${Math.round(precioPromedio).toLocaleString('es-CO')}` : 'N/D';
 
-            let htmlTabla = Object.values(datosTabla).sort((a,b) => b.matr - a.matr).slice(0, 50).map(row => `
-                <tr><td class="font-medium text-[0.75rem] max-w-[150px] truncate" title="${row.ies}">${row.ies}</td><td class="text-[0.75rem] max-w-[150px] truncate" title="${row.prog}">${row.prog}</td><td class="text-[0.75rem]">${row.depto}</td><td class="text-right font-bold text-[0.75rem]">${row.matr.toLocaleString()}</td><td class="text-right text-[0.75rem] text-emerald-600">${row.precio>0?'$'+row.precio.toLocaleString('es-CO'):'-'}</td><td class="text-center">${row.url?`<a href="${row.url.startsWith('http')?row.url:'https://'+row.url}" target="_blank" class="text-blue-600 font-bold text-[0.7rem]">Ver</a>`:'-'}</td></tr>
+            let htmlTabla = Object.values(datosTabla).sort((a, b) => b.matr - a.matr).slice(0, 50).map(row => `
+                <tr><td class="font-medium text-[0.75rem] max-w-[150px] truncate" title="${row.ies}">${row.ies}</td><td class="text-[0.75rem] max-w-[150px] truncate" title="${row.prog}">${row.prog}</td><td class="text-[0.75rem]">${row.depto}</td><td class="text-right font-bold text-[0.75rem]">${row.matr.toLocaleString()}</td><td class="text-right text-[0.75rem] text-emerald-600">${row.precio > 0 ? '$' + row.precio.toLocaleString('es-CO') : '-'}</td><td class="text-center">${row.url ? `<a href="${row.url.startsWith('http') ? row.url : 'https://' + row.url}" target="_blank" class="text-blue-600 font-bold text-[0.7rem]">Ver</a>` : '-'}</td></tr>
             `).join('');
             document.getElementById('tabla-detalles').innerHTML = htmlTabla || '<tr><td colspan="6" class="text-center py-4 text-slate-500">No hay datos disponibles para esta selección</td></tr>';
 
             const isMobile = window.innerWidth < 768;
             const fontStyle = { family: 'Inter', color: '#475569', size: isMobile ? 9 : 11 };
             const confGen = { responsive: true, displayModeBar: false };
-            const layout = { 
-                margin: { t: 20, b: 30, l: 10, r: 10 }, font: fontStyle, 
+            const layout = {
+                margin: { t: 20, b: 30, l: 10, r: 10 }, font: fontStyle,
                 paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', autosize: true,
-                xaxis: { showgrid: false, zeroline: false }, 
-                yaxis: { showgrid: true, gridcolor: '#f1f5f9', zeroline: false, automargin: true } 
+                xaxis: { showgrid: false, zeroline: false },
+                yaxis: { showgrid: true, gridcolor: '#f1f5f9', zeroline: false, automargin: true }
             };
-            
+
             let limitVal = document.getElementById('filtro-limite').value;
             let numLimit = limitVal === 'ALL' ? 50 : parseInt(limitVal);
 
             const getTop = (obj, limit) => {
-                let sorted = Object.entries(obj).sort((a,b)=>b[1]-a[1]);
+                let sorted = Object.entries(obj).sort((a, b) => b[1] - a[1]);
                 let sliced = sorted.slice(0, limit);
-                return sliced.reduce((a,v)=>({k:[...a.k,v[0]], v:[...a.v,v[1]]}), {k:[],v:[], total: sorted.length});
+                return sliced.reduce((a, v) => ({ k: [...a.k, v[0]], v: [...a.v, v[1]] }), { k: [], v: [], total: sorted.length });
             };
 
             // --- 1. MAPA MULTIDIMENSIONAL ---
-// --- MAPA CON LÓGICA COMPLETA Y ESTILO PREMIUM ---
-let mapMode = document.getElementById('map-mode').value;
-const mapTraces = [];
-let maxD = Math.max(...Object.values(agg.depto), 1);
+            // --- MAPA CON LÓGICA COMPLETA Y ESTILO PREMIUM ---
+            let mapMode = document.getElementById('map-mode').value;
+            const mapTraces = [];
+            let maxD = Math.max(...Object.values(agg.depto), 1);
 
-// 1. FONDO CHOROPLETH (MÁS SUTIL)
-if (geojsonData) {
-    const allDeptNames = geojsonData.features.map(f => f.properties.NOMBRE_DPT);
-    mapTraces.push({ 
-        type: 'choropleth', geojson: geojsonData, locations: allDeptNames, featureidkey: 'properties.NOMBRE_DPT', z: allDeptNames.map(() => 1), 
-        colorscale: [[0, '#f8fafc'], [1, '#f8fafc']], showscale: false, 
-        marker: { line: { color: '#cbd5e1', width: 0.8 }, opacity: 0.8 }, hoverinfo: 'none' 
-    });
-}
-
-if (mapMode === 'TOTAL') {
-    let lats = [], lons = [], txts = [], sizes = [], raws = [];
-    Object.entries(aggMap).forEach(([depto, data]) => {
-        let d = normDepto(depto).toLowerCase(); 
-        if (coordsDeptos[d] && data.total > 0) {
-            lats.push(coordsDeptos[d].lat); lons.push(coordsDeptos[d].lon);
-            txts.push(`<b>${depto.toUpperCase()}</b><br>Total: ${data.total.toLocaleString()}<br><span style="font-size:10px;color:#64748b">H: ${data.hombres || 0} | M: ${data.mujeres || 0}</span>`);
-            sizes.push((isMobile ? 10 : 14) + Math.sqrt(data.total/maxD) * (isMobile ? 30 : 45)); 
-            raws.push(depto);
-        }
-    });
-    mapTraces.push({ 
-        type: 'scattergeo', lat: lats, lon: lons, text: txts, customdata: raws, hoverinfo: 'text', mode: 'markers', 
-        marker: { size: sizes, color: '#3b82f6', opacity: 0.85, line: { width: 1.5, color: '#ffffff' } } 
-    });
-} else {
-    // 2. LÓGICA RESTAURADA Y AMPLIADA (Soporta Sexo, Metodología y Semestre)
-    let lats1=[], lons1=[], sizes1=[], txts1=[], raws1=[];
-    let lats2=[], lons2=[], sizes2=[], txts2=[], raws2=[];
-    
-    // Configuración dinámica según el filtro seleccionado
-    let lbl1, lbl2, c1, c2, getVal1, getVal2;
-
-    if (mapMode === 'SEXO') {
-        lbl1 = 'Hombres'; lbl2 = 'Mujeres';
-        c1 = coloresVisuales.SEXO?.['Hombres'] || '#0ea5e9';
-        c2 = coloresVisuales.SEXO?.['Mujeres'] || '#ec4899';
-        getVal1 = data => data.hombres || 0;
-        getVal2 = data => data.mujeres || 0;
-    } else if (mapMode === 'SEMESTRE') {
-        lbl1 = 'Semestre 1'; lbl2 = 'Semestre 2';
-        c1 = '#8b5cf6'; // Morado Premium
-        c2 = '#f59e0b'; // Ambar Premium
-        // Asegúrate de que las llaves (semestre1, semestre2) coincidan con cómo las guardas en aggMap
-        getVal1 = data => data.semestre1 || data['1'] || 0; 
-        getVal2 = data => data.semestre2 || data['2'] || 0;
-    } else { // Por defecto asume METODOLOGIA
-        lbl1 = 'Presencial'; lbl2 = 'Virtual/Dist.';
-        c1 = coloresVisuales.METOD?.['Presencial'] || '#10b981';
-        c2 = coloresVisuales.METOD?.['Virtual/Dist.'] || '#f43f5e';
-        getVal1 = data => data.presencial || 0;
-        getVal2 = data => data.virtual || 0;
-    }
-
-    Object.entries(aggMap).forEach(([depto, data]) => {
-        let d = normDepto(depto).toLowerCase();
-        if (coordsDeptos[d] && data.total > 0) {
-            let lat = coordsDeptos[d].lat, lon = coordsDeptos[d].lon;
-            let val1 = getVal1(data);
-            let val2 = getVal2(data);
-
-            if (val1 > 0) { 
-                lats1.push(lat); lons1.push(lon - 0.12); // Offset ajustado para que no se separen mucho
-                sizes1.push((isMobile ? 8 : 10) + Math.sqrt(val1/maxD)*35); 
-                txts1.push(`<b>${depto} (${lbl1})</b><br>${val1.toLocaleString()} matr.`); 
-                raws1.push(depto); 
+            // 1. FONDO CHOROPLETH (MÁS SUTIL)
+            if (geojsonData) {
+                const allDeptNames = geojsonData.features.map(f => f.properties.NOMBRE_DPT);
+                mapTraces.push({
+                    type: 'choropleth', geojson: geojsonData, locations: allDeptNames, featureidkey: 'properties.NOMBRE_DPT', z: allDeptNames.map(() => 1),
+                    colorscale: [[0, '#f8fafc'], [1, '#f8fafc']], showscale: false,
+                    marker: { line: { color: '#cbd5e1', width: 0.8 }, opacity: 0.8 }, hoverinfo: 'none'
+                });
             }
-            if (val2 > 0) { 
-                lats2.push(lat); lons2.push(lon + 0.12); 
-                sizes2.push((isMobile ? 8 : 10) + Math.sqrt(val2/maxD)*35); 
-                txts2.push(`<b>${depto} (${lbl2})</b><br>${val2.toLocaleString()} matr.`); 
-                raws2.push(depto); 
+
+            if (mapMode === 'TOTAL') {
+                let lats = [], lons = [], txts = [], sizes = [], raws = [];
+                Object.entries(aggMap).forEach(([depto, data]) => {
+                    let d = normDepto(depto).toLowerCase();
+                    if (coordsDeptos[d] && data.total > 0) {
+                        lats.push(coordsDeptos[d].lat); lons.push(coordsDeptos[d].lon);
+                        txts.push(`<b>${depto.toUpperCase()}</b><br>Total: ${data.total.toLocaleString()}<br><span style="font-size:10px;color:#64748b">H: ${data.hombres || 0} | M: ${data.mujeres || 0}</span>`);
+                        sizes.push((isMobile ? 10 : 14) + Math.sqrt(data.total / maxD) * (isMobile ? 30 : 45));
+                        raws.push(depto);
+                    }
+                });
+                mapTraces.push({
+                    type: 'scattergeo', lat: lats, lon: lons, text: txts, customdata: raws, hoverinfo: 'text', mode: 'markers',
+                    marker: { size: sizes, color: '#3b82f6', opacity: 0.85, line: { width: 1.5, color: '#ffffff' } }
+                });
+            } else {
+                // 2. LÓGICA RESTAURADA Y AMPLIADA (Soporta Sexo, Metodología y Semestre)
+                let lats1 = [], lons1 = [], sizes1 = [], txts1 = [], raws1 = [];
+                let lats2 = [], lons2 = [], sizes2 = [], txts2 = [], raws2 = [];
+
+                // Configuración dinámica según el filtro seleccionado
+                let lbl1, lbl2, c1, c2, getVal1, getVal2;
+
+                if (mapMode === 'SEXO') {
+                    lbl1 = 'Hombres'; lbl2 = 'Mujeres';
+                    c1 = coloresVisuales.SEXO?.['Hombres'] || '#0ea5e9';
+                    c2 = coloresVisuales.SEXO?.['Mujeres'] || '#ec4899';
+                    getVal1 = data => data.hombres || 0;
+                    getVal2 = data => data.mujeres || 0;
+                } else if (mapMode === 'SEMESTRE') {
+                    lbl1 = 'Semestre 1'; lbl2 = 'Semestre 2';
+                    c1 = '#8b5cf6'; // Morado Premium
+                    c2 = '#f59e0b'; // Ambar Premium
+                    // Asegúrate de que las llaves (semestre1, semestre2) coincidan con cómo las guardas en aggMap
+                    getVal1 = data => data.semestre1 || data['1'] || 0;
+                    getVal2 = data => data.semestre2 || data['2'] || 0;
+                } else { // Por defecto asume METODOLOGIA
+                    lbl1 = 'Presencial'; lbl2 = 'Virtual/Dist.';
+                    c1 = coloresVisuales.METOD?.['Presencial'] || '#10b981';
+                    c2 = coloresVisuales.METOD?.['Virtual/Dist.'] || '#f43f5e';
+                    getVal1 = data => data.presencial || 0;
+                    getVal2 = data => data.virtual || 0;
+                }
+
+                Object.entries(aggMap).forEach(([depto, data]) => {
+                    let d = normDepto(depto).toLowerCase();
+                    if (coordsDeptos[d] && data.total > 0) {
+                        let lat = coordsDeptos[d].lat, lon = coordsDeptos[d].lon;
+                        let val1 = getVal1(data);
+                        let val2 = getVal2(data);
+
+                        if (val1 > 0) {
+                            lats1.push(lat); lons1.push(lon - 0.12); // Offset ajustado para que no se separen mucho
+                            sizes1.push((isMobile ? 8 : 10) + Math.sqrt(val1 / maxD) * 35);
+                            txts1.push(`<b>${depto} (${lbl1})</b><br>${val1.toLocaleString()} matr.`);
+                            raws1.push(depto);
+                        }
+                        if (val2 > 0) {
+                            lats2.push(lat); lons2.push(lon + 0.12);
+                            sizes2.push((isMobile ? 8 : 10) + Math.sqrt(val2 / maxD) * 35);
+                            txts2.push(`<b>${depto} (${lbl2})</b><br>${val2.toLocaleString()} matr.`);
+                            raws2.push(depto);
+                        }
+                    }
+                });
+
+                // Inyectamos las burbujas comparativas
+                mapTraces.push({ type: 'scattergeo', name: lbl1, lat: lats1, lon: lons1, text: txts1, customdata: raws1, hoverinfo: 'text', mode: 'markers', marker: { size: sizes1, color: c1, opacity: 0.9, line: { width: 1.2, color: '#ffffff' } } });
+                mapTraces.push({ type: 'scattergeo', name: lbl2, lat: lats2, lon: lons2, text: txts2, customdata: raws2, hoverinfo: 'text', mode: 'markers', marker: { size: sizes2, color: c2, opacity: 0.9, line: { width: 1.2, color: '#ffffff' } } });
             }
-        }
-    });
 
-    // Inyectamos las burbujas comparativas
-    mapTraces.push({ type: 'scattergeo', name: lbl1, lat: lats1, lon: lons1, text: txts1, customdata: raws1, hoverinfo: 'text', mode: 'markers', marker: { size: sizes1, color: c1, opacity: 0.9, line: {width: 1.2, color: '#ffffff'} } });
-    mapTraces.push({ type: 'scattergeo', name: lbl2, lat: lats2, lon: lons2, text: txts2, customdata: raws2, hoverinfo: 'text', mode: 'markers', marker: { size: sizes2, color: c2, opacity: 0.9, line: {width: 1.2, color: '#ffffff'} } });
-}
+            // 3. LAYOUT LIMPIO (Geo FitBounds)
+            const mapLayout = {
+                ...layout,
+                margin: { t: 0, b: 0, l: 0, r: 0 },
+                showlegend: mapMode !== 'TOTAL',
+                legend: { orientation: 'h', x: 0.5, y: -0.05, xanchor: 'center', bgcolor: 'rgba(255,255,255,0.8)', font: { size: 11, color: '#475569' } },
+                geo: geojsonData ?
+                    { fitbounds: 'locations', visible: false, bgcolor: 'transparent' } :
+                    { scope: 'south america', center: { lat: 4.5, lon: -73.0 }, projection: { type: 'mercator', scale: isMobile ? 3.5 : 4.5 }, showland: true, landcolor: '#f8fafc', showcountries: true, countrycolor: '#e2e8f0', bgcolor: 'transparent' }
+            };
 
-// 3. LAYOUT LIMPIO (Geo FitBounds)
-const mapLayout = { 
-    ...layout, 
-    margin: {t:0, b:0, l:0, r:0}, 
-    showlegend: mapMode !== 'TOTAL', 
-    legend: { orientation: 'h', x: 0.5, y: -0.05, xanchor: 'center', bgcolor: 'rgba(255,255,255,0.8)', font: { size: 11, color: '#475569' } }, 
-    geo: geojsonData ? 
-        { fitbounds: 'locations', visible: false, bgcolor: 'transparent' } : 
-        { scope: 'south america', center: { lat: 4.5, lon: -73.0 }, projection: { type: 'mercator', scale: isMobile ? 3.5 : 4.5 }, showland: true, landcolor: '#f8fafc', showcountries: true, countrycolor: '#e2e8f0', bgcolor: 'transparent' } 
-};
-
-Plotly.newPlot('mapa-colombia', mapTraces, mapLayout, confGen);
-bindPlotlyClick('mapa-colombia', 'depto', d => { const pt = d.points[0]; return pt.data.type === 'scattergeo' ? pt.customdata : null; });
+            Plotly.newPlot('mapa-colombia', mapTraces, mapLayout, confGen);
+            bindPlotlyClick('mapa-colombia', 'depto', d => { const pt = d.points[0]; return pt.data.type === 'scattergeo' ? pt.customdata : null; });
 
             // --- 2. EVOLUCIÓN HISTÓRICA (NUEVOS MULTI-LÍNEAS) ---
-// 
-let modeEvol = document.getElementById('mode-evolucion').value;
-let años = Object.keys(agg.año).sort();
-let tracesEvol = [];
+            // 
+            let modeEvol = document.getElementById('mode-evolucion').value;
+            let años = Object.keys(agg.año).sort();
+            let tracesEvol = [];
 
-if (modeEvol === 'TOTAL') {
-    let valsAños = años.map(a => aggEvolDetalle[a].total);
-    
-    let textosConCrecimiento = valsAños.map((v, i) => {
-        if (i === 0 || valsAños[i-1] === 0) return `<b>${v.toLocaleString()}</b>`;
-        let prev = valsAños[i-1], pct = ((v - prev) / prev) * 100;
-        // Símbolos más limpios y espaciado mejorado
-        let icon = pct > 0 ? '▲' : (pct < 0 ? '▼' : '▬');
-        return `<b>${v.toLocaleString()}</b><br><span style="font-size:9px">${icon} ${Math.abs(pct).toFixed(1)}%</span>`;
-    });
+            if (modeEvol === 'TOTAL') {
+                let valsAños = años.map(a => aggEvolDetalle[a].total);
 
-    let coloresTexto = valsAños.map((v, i) => {
-        if (i === 0 || valsAños[i-1] === 0) return '#1e293b';
-        let pct = ((v - valsAños[i-1]) / valsAños[i-1]);
-        return pct > 0 ? '#10b981' : (pct < 0 ? '#ef4444' : '#64748b');
-    });
+                let textosConCrecimiento = valsAños.map((v, i) => {
+                    if (i === 0 || valsAños[i - 1] === 0) return `<b>${v.toLocaleString()}</b>`;
+                    let prev = valsAños[i - 1], pct = ((v - prev) / prev) * 100;
+                    // Símbolos más limpios y espaciado mejorado
+                    let icon = pct > 0 ? '▲' : (pct < 0 ? '▼' : '▬');
+                    return `<b>${v.toLocaleString()}</b><br><span style="font-size:9px">${icon} ${Math.abs(pct).toFixed(1)}%</span>`;
+                });
 
-    tracesEvol.push({ 
-        x: años, y: valsAños, 
-        type: 'scatter', 
-        mode: 'lines+markers+text', 
-        text: textosConCrecimiento, 
-        textposition: 'top center',
-        textfont: { weight: 700, color: coloresTexto, size: isMobile ? 10 : 11 },
-        // LÍNEA SUAVE (SPLINE) - Da un look mucho más moderno
-        line: { color: '#3b82f6', width: 4, shape: 'spline' }, 
-        marker: { size: 10, color: '#3b82f6', line: { color: '#ffffff', width: 2 } },
-        // DEGRADADO DE LLENADO
-        fill: 'tozeroy', 
-        fillcolor: 'rgba(59, 130, 246, 0.1)' 
-    });
-} else {
-    let variableEvol = modeEvol.toLowerCase(); 
-    let subkeys = new Set();
-    años.forEach(a => Object.keys(aggEvolDetalle[a][variableEvol]).forEach(sk => subkeys.add(sk)));
-    
-    let paleta = coloresVisuales[modeEvol] || {};
-    Array.from(subkeys).sort().forEach((sk, idx) => {
-        let yVals = años.map(a => aggEvolDetalle[a][variableEvol][sk] || 0);
-        let color = paleta[sk] || coloresFallback[idx % coloresFallback.length];
-        
-        tracesEvol.push({ 
-            x: años, y: yVals, name: sk, 
-            type: 'scatter', 
-            mode: 'lines+markers', // Quitamos texto en modo multi para no saturar
-            line: { width: 3, shape: 'spline', color: color }, 
-            marker: { size: 8, color: color, line: { color: '#ffffff', width: 1 } },
-            hoverinfo: 'name+y+x'
-        });
-    });
-}
+                let coloresTexto = valsAños.map((v, i) => {
+                    if (i === 0 || valsAños[i - 1] === 0) return '#1e293b';
+                    let pct = ((v - valsAños[i - 1]) / valsAños[i - 1]);
+                    return pct > 0 ? '#10b981' : (pct < 0 ? '#ef4444' : '#64748b');
+                });
 
-let maxTotalEvol = Math.max(...años.map(a => aggEvolDetalle[a].total), 1);
+                tracesEvol.push({
+                    x: años, y: valsAños,
+                    type: 'scatter',
+                    mode: 'lines+markers+text',
+                    text: textosConCrecimiento,
+                    textposition: 'top center',
+                    textfont: { weight: 700, color: coloresTexto, size: isMobile ? 10 : 11 },
+                    // LÍNEA SUAVE (SPLINE) - Da un look mucho más moderno
+                    line: { color: '#3b82f6', width: 4, shape: 'spline' },
+                    marker: { size: 10, color: '#3b82f6', line: { color: '#ffffff', width: 2 } },
+                    // DEGRADADO DE LLENADO
+                    fill: 'tozeroy',
+                    fillcolor: 'rgba(59, 130, 246, 0.1)'
+                });
+            } else {
+                let variableEvol = modeEvol.toLowerCase();
+                let subkeys = new Set();
+                años.forEach(a => Object.keys(aggEvolDetalle[a][variableEvol]).forEach(sk => subkeys.add(sk)));
 
-// LAYOUT LIMPIO
-const layoutEvol = { 
-    ...layout, 
-    showlegend: modeEvol !== 'TOTAL', 
-    legend: { orientation: 'h', x: 0.5, y: -0.2, xanchor: 'center', font: {size: 11, color: '#64748b'} }, 
-    margin: { l: isMobile ? 40 : 60, r: 20, t: 30, b: 60 }, 
-    xaxis: { 
-        showgrid: false, // Quitar rejilla vertical para limpiar
-        tickfont: { color: '#64748b', weight: 'bold' }
-    },
-    yaxis: { 
-        range: [0, maxTotalEvol * 1.3], 
-        showticklabels: true,
-        gridcolor: '#f1f5f9', // Rejilla horizontal muy tenue
-        zeroline: false
-    },
-    hovermode: 'x unified' // Muestra todos los datos al pasar por el año
-};
+                let paleta = coloresVisuales[modeEvol] || {};
+                Array.from(subkeys).sort().forEach((sk, idx) => {
+                    let yVals = años.map(a => aggEvolDetalle[a][variableEvol][sk] || 0);
+                    let color = paleta[sk] || coloresFallback[idx % coloresFallback.length];
 
-Plotly.newPlot('grafico-evolucion', tracesEvol, layoutEvol, confGen);
-bindPlotlyClick('grafico-evolucion', 'año', d => String(d.points[0].x));
+                    tracesEvol.push({
+                        x: años, y: yVals, name: sk,
+                        type: 'scatter',
+                        mode: 'lines+markers', // Quitamos texto en modo multi para no saturar
+                        line: { width: 3, shape: 'spline', color: color },
+                        marker: { size: 8, color: color, line: { color: '#ffffff', width: 1 } },
+                        hoverinfo: 'name+y+x'
+                    });
+                });
+            }
+
+            let maxTotalEvol = Math.max(...años.map(a => aggEvolDetalle[a].total), 1);
+
+            // LAYOUT LIMPIO
+            const layoutEvol = {
+                ...layout,
+                showlegend: modeEvol !== 'TOTAL',
+                legend: { orientation: 'h', x: 0.5, y: -0.2, xanchor: 'center', font: { size: 11, color: '#64748b' } },
+                margin: { l: isMobile ? 40 : 60, r: 20, t: 30, b: 60 },
+                xaxis: {
+                    showgrid: false, // Quitar rejilla vertical para limpiar
+                    tickfont: { color: '#64748b', weight: 'bold' }
+                },
+                yaxis: {
+                    range: [0, maxTotalEvol * 1.3],
+                    showticklabels: true,
+                    gridcolor: '#f1f5f9', // Rejilla horizontal muy tenue
+                    zeroline: false
+                },
+                hovermode: 'x unified' // Muestra todos los datos al pasar por el año
+            };
+
+            Plotly.newPlot('grafico-evolucion', tracesEvol, layoutEvol, confGen);
+            bindPlotlyClick('grafico-evolucion', 'año', d => String(d.points[0].x));
 
 
             // --- 3. TOP INSTITUCIONES (NUEVOS BARRAS APILADAS) ---
-// --- 3. TOP INSTITUCIONES (LÓGICA ORIGINAL + ESTILO PREMIUM) ---
-let modeIes = document.getElementById('mode-ies').value;
-let tIes = getTop(agg.ies, numLimit);
-document.getElementById('lbl-ies-count').innerText = `(${tIes.k.length})`;
-const altoIes = Math.max(isMobile ? 300 : 350, tIes.k.length * 35);
-document.getElementById('grafico-instituciones').style.height = `${altoIes}px`;
-const truncar = str => isMobile && str.length > 25 ? str.substring(0, 23) + '...' : str;
+            // --- 3. TOP INSTITUCIONES (LÓGICA ORIGINAL + ESTILO PREMIUM) ---
+            let modeIes = document.getElementById('mode-ies').value;
+            let tIes = getTop(agg.ies, numLimit);
+            document.getElementById('lbl-ies-count').innerText = `(${tIes.k.length})`;
+            const altoIes = Math.max(isMobile ? 300 : 350, tIes.k.length * 35);
+            document.getElementById('grafico-instituciones').style.height = `${altoIes}px`;
+            const truncar = str => isMobile && str.length > 25 ? str.substring(0, 23) + '...' : str;
 
-let tracesIes = [];
-if(modeIes === 'TOTAL') {
-    tracesIes.push({ 
-        type: 'bar', orientation: 'h', 
-        customdata: tIes.k.slice().reverse(), 
-        y: tIes.k.slice().reverse().map(truncar), 
-        x: tIes.v.slice().reverse(), 
-        text: tIes.v.slice().reverse().map(v => v.toLocaleString()), 
-        textposition: 'outside', // Mejor legibilidad
-        marker: { 
-            color: '#3b82f6', // Azul moderno
-            line: { color: '#ffffff', width: 2 }
-        } 
-    });
-} else {
-    // Aplicamos estilo a los traces generados por tu función
-    tracesIes = crearTracesApilados(aggIesDetalle, tIes.k.slice().reverse(), modeIes.toLowerCase()).map(t => ({
-        ...t, 
-        marker: { ...t.marker, line: { color: '#ffffff', width: 1.5 } },
-        textposition: 'auto'
-    }));
-}
+            let tracesIes = [];
+            if (modeIes === 'TOTAL') {
+                tracesIes.push({
+                    type: 'bar', orientation: 'h',
+                    customdata: tIes.k.slice().reverse(),
+                    y: tIes.k.slice().reverse().map(truncar),
+                    x: tIes.v.slice().reverse(),
+                    text: tIes.v.slice().reverse().map(v => v.toLocaleString()),
+                    textposition: 'outside', // Mejor legibilidad
+                    marker: {
+                        color: '#3b82f6', // Azul moderno
+                        line: { color: '#ffffff', width: 2 }
+                    }
+                });
+            } else {
+                // Aplicamos estilo a los traces generados por tu función
+                tracesIes = crearTracesApilados(aggIesDetalle, tIes.k.slice().reverse(), modeIes.toLowerCase()).map(t => ({
+                    ...t,
+                    marker: { ...t.marker, line: { color: '#ffffff', width: 1.5 } },
+                    textposition: 'auto'
+                }));
+            }
 
-Plotly.newPlot('grafico-instituciones', tracesIes, { 
-    ...layout, 
-    barmode: modeIes === 'TOTAL' ? 'group' : 'stack', 
-    showlegend: modeIes !== 'TOTAL', 
-    legend: { orientation: 'h', x: 0.5, y: -0.1, xanchor: 'center', font: {size: 11, color: '#64748b'} }, 
-    margin: {l: 10, t: 30, b: 30, r: 50}, 
-    xaxis: { showgrid: true, gridcolor: '#f1f5f9', zeroline: false },
-    yaxis: { automargin: true, tickfont: { size: 12, color: '#1e293b' } } 
-}, confGen); 
-bindPlotlyClick('grafico-instituciones', 'ies', d => d.points[0].customdata);
+            Plotly.newPlot('grafico-instituciones', tracesIes, {
+                ...layout,
+                barmode: modeIes === 'TOTAL' ? 'group' : 'stack',
+                showlegend: modeIes !== 'TOTAL',
+                legend: { orientation: 'h', x: 0.5, y: -0.1, xanchor: 'center', font: { size: 11, color: '#64748b' } },
+                margin: { l: 10, t: 30, b: 30, r: 50 },
+                xaxis: { showgrid: true, gridcolor: '#f1f5f9', zeroline: false },
+                yaxis: { automargin: true, tickfont: { size: 12, color: '#1e293b' } }
+            }, confGen);
+            bindPlotlyClick('grafico-instituciones', 'ies', d => d.points[0].customdata);
 
 
-// --- 4. TOP PROGRAMAS (LÓGICA ORIGINAL + ESTILO PREMIUM) ---
-let modeProg = document.getElementById('mode-prog').value;
-let tProg = getTop(agg.prog, numLimit);
-document.getElementById('lbl-prog-count').innerText = `(${tProg.k.length})`;
-const altoProg = Math.max(isMobile ? 300 : 350, tProg.k.length * 35);
-document.getElementById('grafico-programas').style.height = `${altoProg}px`;
+            // --- 4. TOP PROGRAMAS (LÓGICA ORIGINAL + ESTILO PREMIUM) ---
+            let modeProg = document.getElementById('mode-prog').value;
+            let tProg = getTop(agg.prog, numLimit);
+            document.getElementById('lbl-prog-count').innerText = `(${tProg.k.length})`;
+            const altoProg = Math.max(isMobile ? 300 : 350, tProg.k.length * 35);
+            document.getElementById('grafico-programas').style.height = `${altoProg}px`;
 
-let tracesProg = [];
-if(modeProg === 'TOTAL') {
-    tracesProg.push({ 
-        type: 'bar', orientation: 'h', 
-        customdata: tProg.k.slice().reverse(), 
-        y: tProg.k.slice().reverse().map(truncar), 
-        x: tProg.v.slice().reverse(), 
-        text: tProg.v.slice().reverse().map(v => v.toLocaleString()), 
-        textposition: 'outside',
-        marker: { 
-            color: '#8b5cf6', // Morado moderno
-            line: { color: '#ffffff', width: 2 }
-        } 
-    });
-} else {
-    tracesProg = crearTracesApilados(aggProgDetalle, tProg.k.slice().reverse(), modeProg.toLowerCase()).map(t => ({
-        ...t, 
-        marker: { ...t.marker, line: { color: '#ffffff', width: 1.5 } },
-        textposition: 'auto'
-    }));
-}
+            let tracesProg = [];
+            if (modeProg === 'TOTAL') {
+                tracesProg.push({
+                    type: 'bar', orientation: 'h',
+                    customdata: tProg.k.slice().reverse(),
+                    y: tProg.k.slice().reverse().map(truncar),
+                    x: tProg.v.slice().reverse(),
+                    text: tProg.v.slice().reverse().map(v => v.toLocaleString()),
+                    textposition: 'outside',
+                    marker: {
+                        color: '#8b5cf6', // Morado moderno
+                        line: { color: '#ffffff', width: 2 }
+                    }
+                });
+            } else {
+                tracesProg = crearTracesApilados(aggProgDetalle, tProg.k.slice().reverse(), modeProg.toLowerCase()).map(t => ({
+                    ...t,
+                    marker: { ...t.marker, line: { color: '#ffffff', width: 1.5 } },
+                    textposition: 'auto'
+                }));
+            }
 
-Plotly.newPlot('grafico-programas', tracesProg, { 
-    ...layout, 
-    barmode: modeProg === 'TOTAL' ? 'group' : 'stack', 
-    showlegend: modeProg !== 'TOTAL', 
-    legend: { orientation: 'h', x: 0.5, y: -0.1, xanchor: 'center', font: {size: 11, color: '#64748b'} }, 
-    margin: {l: 10, t: 30, b: 30, r: 50}, 
-    xaxis: { showgrid: true, gridcolor: '#f1f5f9', zeroline: false },
-    yaxis: { automargin: true, tickfont: { size: 12, color: '#1e293b' } } 
-}, confGen);
-bindPlotlyClick('grafico-programas', 'programa', d => d.points[0].customdata);
+            Plotly.newPlot('grafico-programas', tracesProg, {
+                ...layout,
+                barmode: modeProg === 'TOTAL' ? 'group' : 'stack',
+                showlegend: modeProg !== 'TOTAL',
+                legend: { orientation: 'h', x: 0.5, y: -0.1, xanchor: 'center', font: { size: 11, color: '#64748b' } },
+                margin: { l: 10, t: 30, b: 30, r: 50 },
+                xaxis: { showgrid: true, gridcolor: '#f1f5f9', zeroline: false },
+                yaxis: { automargin: true, tickfont: { size: 12, color: '#1e293b' } }
+            }, confGen);
+            bindPlotlyClick('grafico-programas', 'programa', d => d.points[0].customdata);
 
 
             // --- 5. GRÁFICOS CIRCULARES (ESTILO OPTIMIZADO) ---
 
-// --- 1. CONFIGURACIÓN DE DISEÑO (LAYOUT) ---
-const donutLytBase = { 
-    ...layout, 
-    // Márgenes generosos para que el texto grande por fuera no achique el círculo
-    margin: { t: 40, b: 80, l: 80, r: 80 }, 
-    showlegend: true,
-    paper_bgcolor: 'rgba(0,0,0,0)',
-    font: { family: "'Inter', sans-serif" },
-    grid: { rows: 1, columns: 1 },
-    legend: { 
-        orientation: 'h', 
-        x: 0.5, y: -0.25, 
-        xanchor: 'center', 
-        font: { size: 11, color: '#64748b' } 
-    } 
-};
+            // --- 1. CONFIGURACIÓN DE DISEÑO (LAYOUT) ---
+            const donutLytBase = {
+                ...layout,
+                // Márgenes generosos para que el texto grande por fuera no achique el círculo
+                margin: { t: 40, b: 80, l: 80, r: 80 },
+                showlegend: true,
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                font: { family: "'Inter', sans-serif" },
+                grid: { rows: 1, columns: 1 },
+                legend: {
+                    orientation: 'h',
+                    x: 0.5, y: -0.25,
+                    xanchor: 'center',
+                    font: { size: 11, color: '#64748b' }
+                }
+            };
 
-// --- 2. FUNCIÓN PARA DATA (PORCENTAJES GRANDES POR FUERA) ---
-const crearDataDonut = (labels, colors) => [{
-    labels: Object.keys(labels),
-    values: Object.values(labels),
-    type: 'pie',
-    hole: 0.72, 
-    textinfo: 'percent', 
-    textposition: 'outside', // Por fuera como pediste
-    automargin: false,       // OBLIGA a que el círculo no se achique
-    marker: {
-        colors: colors,
-        line: { color: '#ffffff', width: 3 }
-    },
-    textfont: {
-        size: 17,            // Porcentajes bien GRANDES
-        color: '#1e293b', 
-        weight: 'bold'
-    },
-    // Forzamos a que el círculo use todo el espacio disponible del 0 al 1
-    domain: { x: [0, 1], y: [0, 1] } 
-}];
+            // --- 2. FUNCIÓN PARA DATA (PORCENTAJES GRANDES POR FUERA) ---
+            const crearDataDonut = (labels, colors) => [{
+                labels: Object.keys(labels),
+                values: Object.values(labels),
+                type: 'pie',
+                hole: 0.72,
+                textinfo: 'percent',
+                textposition: 'outside', // Por fuera como pediste
+                automargin: false,       // OBLIGA a que el círculo no se achique
+                marker: {
+                    colors: colors,
+                    line: { color: '#ffffff', width: 3 }
+                },
+                textfont: {
+                    size: 17,            // Porcentajes bien GRANDES
+                    color: '#1e293b',
+                    weight: 'bold'
+                },
+                // Forzamos a que el círculo use todo el espacio disponible del 0 al 1
+                domain: { x: [0, 1], y: [0, 1] }
+            }];
 
-// Número central (Total)
-const obtenerAnotacionCentral = (dataLabels) => [{
-    font: { size: 24, color: '#1e293b', weight: 'bold' },
-    showarrow: false,
-    text: Object.values(dataLabels).reduce((a, b) => a + b, 0).toLocaleString(),
-    x: 0.5, y: 0.5
-}];
+            // Número central (Total)
+            const obtenerAnotacionCentral = (dataLabels) => [{
+                font: { size: 24, color: '#1e293b', weight: 'bold' },
+                showarrow: false,
+                text: Object.values(dataLabels).reduce((a, b) => a + b, 0).toLocaleString(),
+                x: 0.5, y: 0.5
+            }];
 
-// --- 3. RENDERIZADO UNIFORME ---
+            // --- 3. RENDERIZADO UNIFORME ---
 
-// Nivel Académico
-Plotly.newPlot('grafico-nivel', 
-    crearDataDonut(agg.nivel, ['#6366f1', '#a5b4fc', '#818cf8', '#c7d2fe']), 
-    { ...donutLytBase, annotations: obtenerAnotacionCentral(agg.nivel) }, confGen);
+            // Nivel Académico
+            Plotly.newPlot('grafico-nivel',
+                crearDataDonut(agg.nivel, ['#6366f1', '#a5b4fc', '#818cf8', '#c7d2fe']),
+                { ...donutLytBase, annotations: obtenerAnotacionCentral(agg.nivel) }, confGen);
 
-// Metodología (¡Ahora tendrá el mismo tamaño que los demás!)
-Plotly.newPlot('grafico-metodologia', 
-    crearDataDonut(agg.metod, ['#10b981', '#34d399', '#a7f3d0']), 
-    { ...donutLytBase, annotations: obtenerAnotacionCentral(agg.metod) }, confGen);
+            // Metodología (¡Ahora tendrá el mismo tamaño que los demás!)
+            Plotly.newPlot('grafico-metodologia',
+                crearDataDonut(agg.metod, ['#10b981', '#34d399', '#a7f3d0']),
+                { ...donutLytBase, annotations: obtenerAnotacionCentral(agg.metod) }, confGen);
 
-// Análisis de Sexo
-Plotly.newPlot('grafico-sexo', 
-    crearDataDonut(agg.sexo, ['#0ea5e9', '#f43f5e']), 
-    { ...donutLytBase, annotations: obtenerAnotacionCentral(agg.sexo) }, confGen);
+            // Análisis de Sexo
+            Plotly.newPlot('grafico-sexo',
+                crearDataDonut(agg.sexo, ['#0ea5e9', '#f43f5e']),
+                { ...donutLytBase, annotations: obtenerAnotacionCentral(agg.sexo) }, confGen);
 
-// Semestre
-Plotly.newPlot('grafico-semestre', 
-    crearDataDonut(agg.semestre, ['#f59e0b', '#fbbf24', '#fcd34d', '#fef3c7']), 
-    { ...donutLytBase, annotations: obtenerAnotacionCentral(agg.semestre) }, confGen);
+            // Semestre
+            Plotly.newPlot('grafico-semestre',
+                crearDataDonut(agg.semestre, ['#f59e0b', '#fbbf24', '#fcd34d', '#fef3c7']),
+                { ...donutLytBase, annotations: obtenerAnotacionCentral(agg.semestre) }, confGen);
 
             // --- 6. CATEGORÍAS PARALELAS (Sankey Multicategórico) ---
-// --- 6. CATEGORÍAS PARALELAS (Estilo UI Moderno) ---
-let dimNivel = [], dimMetod = [], dimSexo = [], freqs = [];
+            // --- 6. CATEGORÍAS PARALELAS (Estilo UI Moderno) ---
+            let dimNivel = [], dimMetod = [], dimSexo = [], freqs = [];
 
-Object.keys(parcatsAgg).forEach(k => {
-    let p = k.split('|'); 
-    dimNivel.push(p[0]); 
-    dimMetod.push(p[1]); 
-    dimSexo.push(p[2]); 
-    freqs.push(parcatsAgg[k]);
-});
+            Object.keys(parcatsAgg).forEach(k => {
+                let p = k.split('|');
+                dimNivel.push(p[0]);
+                dimMetod.push(p[1]);
+                dimSexo.push(p[2]);
+                freqs.push(parcatsAgg[k]);
+            });
 
-// Definimos una escala de colores que combine con tus otros gráficos (Azules/Slate)
-// Usamos una transición suave de Indigo a Slate
-const coloresParcats = [
-    [0, '#6366f1'],   // Indigo 500
-    [0.5, '#94a3b8'], // Slate 400
-    [1, '#cbd5e1']    // Slate 300
-];
+            // Definimos una escala de colores que combine con tus otros gráficos (Azules/Slate)
+            // Usamos una transición suave de Indigo a Slate
+            const coloresParcats = [
+                [0, '#6366f1'],   // Indigo 500
+                [0.5, '#94a3b8'], // Slate 400
+                [1, '#cbd5e1']    // Slate 300
+            ];
 
-let nivelesUnicos = [...new Set(dimNivel)];
-let arrayColoresParcats = dimNivel.map(n => nivelesUnicos.indexOf(n));
+            let nivelesUnicos = [...new Set(dimNivel)];
+            let arrayColoresParcats = dimNivel.map(n => nivelesUnicos.indexOf(n));
 
-let traceParcats = {
-    type: 'parcats',
-    hoverinfo: 'count+probability',
-    arrangement: 'freeform', // Permite mover las categorías para que se vea más fluido
-    bundlecolors: true,      // Agrupa colores para que no parezca un plato de espagueti
-    line: { 
-        color: arrayColoresParcats, 
-        colorscale: coloresParcats, 
-        shape: 'hspline',    // Curvas suaves tipo Sankey
-        hoverinfo: 'none'
-    },
-    dimensions: [ 
-        { label: 'NIVEL', values: dimNivel }, 
-        { label: 'METODOLOGÍA', values: dimMetod }, 
-        { label: 'SEXO', values: dimSexo } 
-    ],
-    counts: freqs,
-    // Tipografía matching con el resto del dashboard
-    labelfont: { 
-        family: "'Inter', sans-serif", 
-        size: isMobile ? 10 : 12, 
-        color: '#1e293b', 
-        weight: 'bold' 
-    }, 
-    tickfont: { 
-        family: "'Inter', sans-serif", 
-        size: isMobile ? 9 : 11, 
-        color: '#64748b' 
-    }
-};
+            let traceParcats = {
+                type: 'parcats',
+                hoverinfo: 'count+probability',
+                arrangement: 'freeform', // Permite mover las categorías para que se vea más fluido
+                bundlecolors: true,      // Agrupa colores para que no parezca un plato de espagueti
+                line: {
+                    color: arrayColoresParcats,
+                    colorscale: coloresParcats,
+                    shape: 'hspline',    // Curvas suaves tipo Sankey
+                    hoverinfo: 'none'
+                },
+                dimensions: [
+                    { label: 'NIVEL', values: dimNivel },
+                    { label: 'METODOLOGÍA', values: dimMetod },
+                    { label: 'SEXO', values: dimSexo }
+                ],
+                counts: freqs,
+                // Tipografía matching con el resto del dashboard
+                labelfont: {
+                    family: "'Inter', sans-serif",
+                    size: isMobile ? 10 : 12,
+                    color: '#1e293b',
+                    weight: 'bold'
+                },
+                tickfont: {
+                    family: "'Inter', sans-serif",
+                    size: isMobile ? 9 : 11,
+                    color: '#64748b'
+                }
+            };
 
-// Layout limpio
-const parcatsLyt = { 
-    ...layout, 
-    margin: { t: 60, b: 40, l: isMobile ? 40 : 80, r: isMobile ? 40 : 80 },
-    paper_bgcolor: 'rgba(0,0,0,0)',
-    plot_bgcolor: 'rgba(0,0,0,0)'
-};
+            // Layout limpio
+            const parcatsLyt = {
+                ...layout,
+                margin: { t: 60, b: 40, l: isMobile ? 40 : 80, r: isMobile ? 40 : 80 },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)'
+            };
 
-Plotly.newPlot('grafico-parcats', [traceParcats], parcatsLyt, confGen);
-
-
-
-
-
+            Plotly.newPlot('grafico-parcats', [traceParcats], parcatsLyt, confGen);
         }
     </script>
 </body>
