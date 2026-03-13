@@ -8,13 +8,17 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
+    <!-- Tailwind & Data Processing Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+
+    <!-- PLUGIN VIRTUAL SELECT (Para filtros múltiples) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/virtual-select-plugin@1.0.39/dist/virtual-select.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/virtual-select-plugin@1.0.39/dist/virtual-select.min.js"></script>
 
     <style>
         /* --- BASE Y TIPOGRAFÍA --- */
@@ -128,6 +132,7 @@
             text-overflow: ellipsis;
             white-space: nowrap;
             overflow: hidden;
+            font-family: 'Inter', sans-serif;
         }
 
         select:hover {
@@ -188,6 +193,53 @@
             box-shadow: none;
         }
 
+        /* --- ESTILOS VIRTUAL SELECT (Asegurando interactividad) --- */
+        .vscomp-wrapper {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            color: #334155;
+            width: 100%;
+        }
+        .vscomp-toggle-button {
+            padding: 6px 10px;
+            border-radius: 8px;
+            border-color: #cbd5e1;
+            background-color: #ffffff;
+            min-height: 36px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .vscomp-toggle-button:hover {
+            border-color: #94a3b8;
+        }
+        .vscomp-ele_active .vscomp-toggle-button {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+        .vscomp-value {
+            color: #334155;
+            font-weight: 600;
+        }
+        .vscomp-option.selected {
+            background-color: #eff6ff;
+            color: #1d4ed8;
+            font-weight: 600;
+        }
+        .vscomp-option-text {
+            font-weight: 500;
+        }
+        .vscomp-search-input {
+            font-size: 0.85rem;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Asegurar que el componente luzca deshabilitado cuando deba estarlo, pero que funcione normal el resto del tiempo */
+        .vscomp-wrapper.vscomp-disabled .vscomp-toggle-button {
+            background-color: #f8fafc;
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
         /* --- TABLAS (DATAGRID) --- */
         .table-container {
             max-height: 350px;
@@ -227,21 +279,18 @@
             color: #0f172a;
         }
 
-        /* --- SCROLLBARS (INVISIBLES PERO ELEGANTES) --- */
+        /* --- SCROLLBARS --- */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
         }
-
         ::-webkit-scrollbar-track {
             background: transparent;
         }
-
         ::-webkit-scrollbar-thumb {
             background: #cbd5e1;
             border-radius: 10px;
         }
-
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
@@ -306,20 +355,20 @@
         </div>
     </header>
 
-    <div id="panel-filtros" class="bg-white border-b border-slate-200 px-3 md:px-5 py-3 shrink-0 z-10 transition-opacity duration-300 shadow-sm">
+    <div id="panel-filtros" class="bg-white border-b border-slate-200 px-3 md:px-5 py-3 shrink-0 z-10 transition-opacity duration-300 shadow-sm relative">
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-9 gap-3">
-            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Año</label><select id="filtro-año" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
-            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Semestre</label><select id="filtro-semestre" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
-            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Sector</label><select id="filtro-sector" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
-            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Departamento</label><select id="filtro-depto" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
-            <div class="min-w-0 sm:col-span-2 lg:col-span-1"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Institución (IES)</label><select id="filtro-ies" onchange="aplicarFiltros()"><option value="TODOS">Todas</option></select></div>
-            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Nivel</label><select id="filtro-nivel" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
-            <div class="min-w-0 sm:col-span-2 lg:col-span-1"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Programa</label><select id="filtro-programa" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
-            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Sexo</label><select id="filtro-sexo" onchange="aplicarFiltros()"><option value="TODOS">Todos</option></select></div>
+            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Año</label><div id="filtro-año" class="filtro-multiselect"></div></div>
+            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Semestre</label><div id="filtro-semestre" class="filtro-multiselect"></div></div>
+            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Sector</label><div id="filtro-sector" class="filtro-multiselect"></div></div>
+            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Departamento</label><div id="filtro-depto" class="filtro-multiselect"></div></div>
+            <div class="min-w-0 sm:col-span-2 lg:col-span-1"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Institución (IES)</label><div id="filtro-ies" class="filtro-multiselect"></div></div>
+            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Nivel</label><div id="filtro-nivel" class="filtro-multiselect"></div></div>
+            <div class="min-w-0 sm:col-span-2 lg:col-span-1"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Programa</label><div id="filtro-programa" class="filtro-multiselect"></div></div>
+            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Sexo</label><div id="filtro-sexo" class="filtro-multiselect"></div></div>
 
             <div class="min-w-0 col-span-2 sm:col-span-1">
                 <label class="block text-[0.65rem] font-bold text-blue-600 uppercase mb-1 truncate">Ver Top</label>
-                <select id="filtro-limite" onchange="aplicarFiltros()" class="border-blue-300 bg-blue-50 text-blue-800 font-bold">
+                <select id="filtro-limite" onchange="aplicarFiltros()" class="border-blue-300 bg-blue-50 text-blue-800 font-bold w-full h-[36px]">
                     <option value="5">Top 5</option>
                     <option value="10" selected>Top 10</option>
                     <option value="20">Top 20</option>
@@ -334,7 +383,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
                     </svg>
-                    Filtros Activos:
+                    Filtros Activos (Gráficas):
                 </span>
                 <span id="texto-filtros-graficos" class="flex gap-1.5 flex-wrap"></span>
                 <button onclick="limpiarFiltrosCruzados()" class="text-slate-500 hover:text-red-600 font-medium ml-1 transition-colors flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded text-[0.7rem] md:text-xs">
@@ -584,7 +633,6 @@
             "arauca": { lat: 7.0847, lon: -70.7591 }, "san andres": { lat: 12.5847, lon: -81.7006 }
         };
 
-        // Paletas de colores consistentes y centralizadas
         const coloresVisuales = {
             SEXO: { 'Hombres': '#3b82f6', 'Mujeres': '#ec4899' },
             METOD: { 'Presencial': '#10b981', 'Virtual/Dist.': '#8b5cf6' },
@@ -614,6 +662,32 @@
         }
 
         window.onload = async function () {
+            // Inicialización segura de VirtualSelect
+            VirtualSelect.init({
+                ele: '.filtro-multiselect',
+                multiple: true,
+                search: true,
+                placeholder: 'Todos',
+                selectAllText: 'Seleccionar Todos',
+                searchPlaceholderText: 'Buscar...',
+                optionsSelectedText: 'selec.',
+                allOptionsSelectedText: 'Todos',
+                noOptionsText: 'Sin datos...',
+                noSearchResultsText: 'No hay resultados',
+                clearButtonText: 'Limpiar',
+                hideClearButton: false,
+                position: 'bottom left',
+                dropboxWrapper: 'body', 
+                zIndex: 99999,
+                showSelectedOptionsFirst: true
+            });
+
+            document.querySelectorAll('.filtro-multiselect').forEach(el => {
+                el.addEventListener('change', () => {
+                    if (!window.isUpdatingFilters) aplicarFiltros();
+                });
+            });
+
             const selector = document.getElementById('selector-dataset');
             MIS_BASES_DE_DATOS.forEach((db, index) => {
                 let opcion = document.createElement('option');
@@ -650,9 +724,10 @@
 
             filtrosCruzados = {};
             document.getElementById('indicador-filtros-graficos').classList.add('hidden');
+            
             ['año', 'semestre', 'depto', 'ies', 'programa', 'sexo', 'nivel', 'sector'].forEach(id => {
                 const el = document.getElementById(`filtro-${id}`);
-                if (el) el.innerHTML = '<option value="TODOS">Todos</option>';
+                if (el && typeof el.setValue === 'function') el.setValue([], true);
             });
 
             let urlGithub = datasetActual.url.replace('github.com', 'raw.githubusercontent.com').replace('/blob/', '/');
@@ -689,7 +764,6 @@
             };
 
             datosGlobales = datosCrudos.map(f => {
-                // NORMALIZAR DATOS DESDE EL INICIO (Garantiza paleta de color y filtros uniformes)
                 let sexoRaw = col.sexo && f[col.sexo] ? String(f[col.sexo]).trim() : 'Sin dato';
                 let strSexo = sexoRaw.toUpperCase();
                 let sexoLimpio = (strSexo.includes('MASC') || strSexo === 'HOMBRE' || strSexo === 'M') ? 'Hombres' : 
@@ -741,55 +815,115 @@
         function limpiarFiltrosCruzados() { filtrosCruzados = {}; aplicarFiltros(); }
 
         function aplicarFiltros() {
-            const f = {
-                año: document.getElementById('filtro-año').value,
-                semestre: document.getElementById('filtro-semestre').value,
-                depto: document.getElementById('filtro-depto').value,
-                ies: document.getElementById('filtro-ies').value,
-                programa: document.getElementById('filtro-programa').value,
-                sexo: document.getElementById('filtro-sexo').value,
-                nivel: document.getElementById('filtro-nivel').value,
-                sector: document.getElementById('filtro-sector').value
-            };
+            if (window.isUpdatingFilters) return;
+            window.isUpdatingFilters = true;
 
-            const tipos = ['año', 'semestre', 'depto', 'ies', 'programa', 'sexo', 'nivel', 'sector'];
-            tipos.forEach(tipoActual => {
-                const datosParciales = datosGlobales.filter(d => {
+            try {
+                const getFiltroVal = (id) => {
+                    const el = document.getElementById(id);
+                    if (!el) return 'TODOS';
+                    let val = el.value;
+                    if (val === undefined || val === null || val === '') return 'TODOS';
+                    if (Array.isArray(val) && val.length === 0) return 'TODOS';
+                    return val;
+                };
+
+                const f = {
+                    año: getFiltroVal('filtro-año'),
+                    semestre: getFiltroVal('filtro-semestre'),
+                    depto: getFiltroVal('filtro-depto'),
+                    ies: getFiltroVal('filtro-ies'),
+                    programa: getFiltroVal('filtro-programa'),
+                    sexo: getFiltroVal('filtro-sexo'),
+                    nivel: getFiltroVal('filtro-nivel'),
+                    sector: getFiltroVal('filtro-sector')
+                };
+
+                const tipos = ['año', 'semestre', 'depto', 'ies', 'programa', 'sexo', 'nivel', 'sector'];
+                tipos.forEach(tipoActual => {
+                    const datosParciales = datosGlobales.filter(d => {
+                        let pasa = true;
+                        for (let k in f) {
+                            if (k !== tipoActual && f[k] !== 'TODOS') {
+                                if (Array.isArray(f[k])) {
+                                    if (!f[k].includes(d[k])) pasa = false;
+                                } else {
+                                    if (d[k] !== f[k]) pasa = false;
+                                }
+                            }
+                        }
+                        for (let k in filtrosCruzados) {
+                            if (k !== tipoActual && filtrosCruzados[k].length > 0 && !filtrosCruzados[k].includes(d[k])) pasa = false;
+                        }
+                        return pasa;
+                    });
+
+                    let unicos = [...new Set(datosParciales.map(d => d[tipoActual]))].filter(o => o !== 'Sin dato').sort();
+                    if (tipoActual === 'año' || tipoActual === 'semestre') unicos.reverse();
+                    
+                    const el = document.getElementById(`filtro-${tipoActual}`);
+                    if (el && el.setOptions) {
+                        const currentSelected = Array.isArray(f[tipoActual]) ? f[tipoActual] : [];
+                        const formatOptions = unicos.map(op => ({ label: String(op), value: String(op) }));
+                        
+                        el.setOptions(formatOptions);
+                        
+                        if (formatOptions.length > 0) {
+                            if (typeof el.enable === 'function') el.enable();
+                            el.classList.remove('vscomp-disabled');
+                        } else {
+                            if (typeof el.disable === 'function') el.disable();
+                        }
+                        
+                        const validSelected = currentSelected.filter(v => unicos.includes(v));
+                        if (validSelected.length !== currentSelected.length) {
+                            f[tipoActual] = validSelected.length > 0 ? validSelected : 'TODOS';
+                        }
+                        
+                        if (validSelected.length > 0) {
+                            el.setValue(validSelected, true); 
+                        } else {
+                            el.setValue([], true); 
+                        }
+                    }
+                });
+
+                const datosFiltrados = datosGlobales.filter(d => {
                     let pasa = true;
-                    for (let k in f) if (k !== tipoActual && f[k] !== 'TODOS' && d[k] !== f[k]) pasa = false;
-                    for (let k in filtrosCruzados) if (k !== tipoActual && filtrosCruzados[k].length > 0 && !filtrosCruzados[k].includes(d[k])) pasa = false;
+                    for (let k in f) {
+                        if (f[k] !== 'TODOS') {
+                            if (Array.isArray(f[k])) {
+                                if (!f[k].includes(d[k])) pasa = false;
+                            } else {
+                                if (d[k] !== f[k]) pasa = false;
+                            }
+                        }
+                    }
+                    for (let k in filtrosCruzados) {
+                        if (filtrosCruzados[k].length > 0 && !filtrosCruzados[k].includes(d[k])) pasa = false;
+                    }
                     return pasa;
                 });
-                let unicos = [...new Set(datosParciales.map(d => d[tipoActual]))].filter(o => o !== 'Sin dato').sort();
-                if (tipoActual === 'año' || tipoActual === 'semestre') unicos.reverse();
-                const select = document.getElementById(`filtro-${tipoActual}`);
-                let html = '<option value="TODOS">Todos</option>';
-                unicos.forEach(op => html += `<option value="${op}">${op}</option>`);
-                select.innerHTML = html;
-                if (f[tipoActual] !== 'TODOS' && unicos.includes(f[tipoActual])) select.value = f[tipoActual];
-                else { f[tipoActual] = 'TODOS'; select.value = 'TODOS'; }
-            });
 
-            const datosFiltrados = datosGlobales.filter(d => {
-                let pasa = true;
-                for (let k in f) if (f[k] !== 'TODOS' && d[k] !== f[k]) pasa = false;
-                for (let k in filtrosCruzados) if (filtrosCruzados[k].length > 0 && !filtrosCruzados[k].includes(d[k])) pasa = false;
-                return pasa;
-            });
+                let activosHTML = [];
+                Object.entries(filtrosCruzados).forEach(([k, valores]) => {
+                    if (valores.length > 0) {
+                        let txt = valores.length <= 2 ? valores.join(', ') : `${valores.length} selec.`;
+                        activosHTML.push(`<span class="bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 rounded font-medium shadow-sm text-[0.7rem]">${k.toUpperCase()}: ${txt}</span>`);
+                    }
+                });
 
-            let activosHTML = [];
-            Object.entries(filtrosCruzados).forEach(([k, valores]) => {
-                if (valores.length > 0) {
-                    let txt = valores.length <= 2 ? valores.join(', ') : `${valores.length} selec.`;
-                    activosHTML.push(`<span class="bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 rounded font-medium shadow-sm text-[0.7rem]">${k.toUpperCase()}: ${txt}</span>`);
-                }
-            });
+                const divFiltros = document.getElementById('indicador-filtros-graficos');
+                if (activosHTML.length) { document.getElementById('texto-filtros-graficos').innerHTML = activosHTML.join(''); divFiltros.classList.remove('hidden'); }
+                else divFiltros.classList.add('hidden');
 
-            const divFiltros = document.getElementById('indicador-filtros-graficos');
-            if (activosHTML.length) { document.getElementById('texto-filtros-graficos').innerHTML = activosHTML.join(''); divFiltros.classList.remove('hidden'); }
-            else divFiltros.classList.add('hidden');
-
-            dibujarDashboard(datosFiltrados);
+                dibujarDashboard(datosFiltrados);
+                
+            } catch(e) {
+                console.error("Error aplicando filtros:", e);
+            } finally {
+                setTimeout(() => { window.isUpdatingFilters = false; }, 50);
+            }
         }
 
         function bindPlotlyClick(id, tipoFiltro, extractFn) {
@@ -828,6 +962,7 @@
                     text: xVals.map(v => v > 0 ? v.toLocaleString() : ''),
                     textposition: 'inside',
                     insidetextanchor: 'middle',
+                    textfont: { family: "'Inter', sans-serif" },
                     hoverinfo: 'name+x+text'
                 });
             });
@@ -851,7 +986,6 @@
             datos.forEach(d => {
                 tMatriculados += d.matriculados;
 
-                // Ya limpios desde procesarDatos
                 let valSexo = d.sexo;
                 let valMetod = d.metodologia;
                 let valSem = d.semestre;
@@ -862,13 +996,11 @@
 
                 if (d.precio > 0 && !isNaN(d.precio)) { sumPrecio += d.precio; countPrecio++; }
 
-                // Agg básico
                 ['depto', 'programa', 'ies', 'año', 'semestre', 'nivel', 'sexo', 'metodologia', 'municipio', 'sector'].forEach(k => {
                     const prop = k === 'programa' ? 'prog' : k === 'metodologia' ? 'metod' : k;
                     agg[prop][d[k]] = (agg[prop][d[k]] || 0) + d.matriculados;
                 });
 
-                // Agg Detallado Evolución (Años)
                 if (!aggEvolDetalle[d.año]) aggEvolDetalle[d.año] = { total: 0, sexo: {}, metod: {}, semestre: {}, depto: {}, nivel: {} };
                 aggEvolDetalle[d.año].total += d.matriculados;
                 aggEvolDetalle[d.año].sexo[valSexo] = (aggEvolDetalle[d.año].sexo[valSexo] || 0) + d.matriculados;
@@ -877,35 +1009,30 @@
                 aggEvolDetalle[d.año].depto[d.depto] = (aggEvolDetalle[d.año].depto[d.depto] || 0) + d.matriculados;
                 aggEvolDetalle[d.año].nivel[d.nivel] = (aggEvolDetalle[d.año].nivel[d.nivel] || 0) + d.matriculados;
 
-                // Agg Detallado IES
                 if (!aggIesDetalle[d.ies]) aggIesDetalle[d.ies] = { total: 0, sexo: {}, metod: {}, semestre: {} };
                 aggIesDetalle[d.ies].total += d.matriculados;
                 aggIesDetalle[d.ies].sexo[valSexo] = (aggIesDetalle[d.ies].sexo[valSexo] || 0) + d.matriculados;
                 aggIesDetalle[d.ies].metod[valMetod] = (aggIesDetalle[d.ies].metod[valMetod] || 0) + d.matriculados;
                 aggIesDetalle[d.ies].semestre[valSem] = (aggIesDetalle[d.ies].semestre[valSem] || 0) + d.matriculados;
 
-                // Agg Detallado Programas
                 if (!aggProgDetalle[d.programa]) aggProgDetalle[d.programa] = { total: 0, sexo: {}, metod: {}, semestre: {} };
                 aggProgDetalle[d.programa].total += d.matriculados;
                 aggProgDetalle[d.programa].sexo[valSexo] = (aggProgDetalle[d.programa].sexo[valSexo] || 0) + d.matriculados;
                 aggProgDetalle[d.programa].metod[valMetod] = (aggProgDetalle[d.programa].metod[valMetod] || 0) + d.matriculados;
                 aggProgDetalle[d.programa].semestre[valSem] = (aggProgDetalle[d.programa].semestre[valSem] || 0) + d.matriculados;
 
-                // Agg Detallado Municipios
                 if (!aggMuniDetalle[d.municipio]) aggMuniDetalle[d.municipio] = { total: 0, sexo: {}, metod: {}, semestre: {} };
                 aggMuniDetalle[d.municipio].total += d.matriculados;
                 aggMuniDetalle[d.municipio].sexo[valSexo] = (aggMuniDetalle[d.municipio].sexo[valSexo] || 0) + d.matriculados;
                 aggMuniDetalle[d.municipio].metod[valMetod] = (aggMuniDetalle[d.municipio].metod[valMetod] || 0) + d.matriculados;
                 aggMuniDetalle[d.municipio].semestre[valSem] = (aggMuniDetalle[d.municipio].semestre[valSem] || 0) + d.matriculados;
 
-                // Agg Detallado Departamentos
                 if (!aggDeptoDetalle[d.depto]) aggDeptoDetalle[d.depto] = { total: 0, sexo: {}, metod: {}, semestre: {} };
                 aggDeptoDetalle[d.depto].total += d.matriculados;
                 aggDeptoDetalle[d.depto].sexo[valSexo] = (aggDeptoDetalle[d.depto].sexo[valSexo] || 0) + d.matriculados;
                 aggDeptoDetalle[d.depto].metod[valMetod] = (aggDeptoDetalle[d.depto].metod[valMetod] || 0) + d.matriculados;
                 aggDeptoDetalle[d.depto].semestre[valSem] = (aggDeptoDetalle[d.depto].semestre[valSem] || 0) + d.matriculados;
 
-                // Agg Mapa Multidimensional
                 if (!aggMap[d.depto]) aggMap[d.depto] = { total: 0, hombres: 0, mujeres: 0, presencial: 0, virtual: 0, sem1: 0, sem2: 0 };
                 aggMap[d.depto].total += d.matriculados;
                 if (valSexo === 'Hombres') aggMap[d.depto].hombres += d.matriculados;
@@ -915,14 +1042,12 @@
                 if (valSem === '1') aggMap[d.depto].sem1 += d.matriculados;
                 if (valSem === '2') aggMap[d.depto].sem2 += d.matriculados;
 
-                // Agg Parcats
                 let nLimpio = d.nivel.length > 25 ? d.nivel.substring(0, 22) + '...' : d.nivel;
                 let mLimpio = d.metodologia.length > 20 ? d.metodologia.substring(0, 17) + '...' : d.metodologia;
                 let sLimpio = d.sexo;
                 let pk = `${nLimpio}|${mLimpio}|${sLimpio}`;
                 parcatsAgg[pk] = (parcatsAgg[pk] || 0) + d.matriculados;
 
-                // Agg Tabla
                 let keyTabla = `${d.ies}|${d.programa}|${d.depto}`;
                 if (!datosTabla[keyTabla]) datosTabla[keyTabla] = { ies: d.ies, prog: d.programa, depto: d.depto, matr: 0, precio: d.precio, url: d.url };
                 datosTabla[keyTabla].matr += d.matriculados;
@@ -940,13 +1065,40 @@
             document.getElementById('tabla-detalles').innerHTML = htmlTabla || '<tr><td colspan="6" class="text-center py-4 text-slate-500">No hay datos disponibles para esta selección</td></tr>';
 
             const isMobile = window.innerWidth < 768;
-            const fontStyle = { family: 'Inter', color: '#475569', size: isMobile ? 9 : 11 };
+            
+            // --- ACTUALIZACIÓN DE ESTILOS Y TIPOGRAFÍA PARA GRÁFICAS ---
+            const fontStyle = { family: "'Inter', sans-serif", color: '#334155', size: isMobile ? 10 : 12 };
+            
+            // Estilo global mejorado para leyendas (previene el solapamiento y se ve moderno)
+            const legendStyle = { 
+                orientation: 'h', 
+                x: 0.5, 
+                y: -0.22, 
+                xanchor: 'center',
+                yanchor: 'top',
+                font: { family: "'Inter', sans-serif", size: isMobile ? 10 : 11, color: '#475569' },
+                bgcolor: 'rgba(248, 250, 252, 0.8)', // Fondo muy suave
+                bordercolor: '#e2e8f0',
+                borderwidth: 1,
+                itemwidth: 30 // Obliga a Plotly a respetar espacios para que no se amontonen
+            };
+
+            const hoverLabelStyle = {
+                bgcolor: '#1e293b',
+                font: { family: "'Inter', sans-serif", size: 12, color: '#ffffff' },
+                bordercolor: '#1e293b'
+            };
+
             const confGen = { responsive: true, displayModeBar: false };
+            
+            // Layout con márgenes aumentados abajo (margin.b) para dar respiro a las leyendas
             const layout = {
-                margin: { t: 20, b: 30, l: 10, r: 10 }, font: fontStyle,
+                margin: { t: 20, b: 70, l: 10, r: 10 }, 
+                font: fontStyle,
                 paper_bgcolor: 'transparent', plot_bgcolor: 'transparent', autosize: true,
-                xaxis: { showgrid: false, zeroline: false },
-                yaxis: { showgrid: true, gridcolor: '#f1f5f9', zeroline: false, automargin: true }
+                xaxis: { showgrid: false, zeroline: false, tickfont: { family: "'Inter', sans-serif", color: '#64748b' } },
+                yaxis: { showgrid: true, gridcolor: '#f1f5f9', zeroline: false, automargin: true, tickfont: { family: "'Inter', sans-serif", color: '#64748b' } },
+                hoverlabel: hoverLabelStyle
             };
 
             let limitVal = document.getElementById('filtro-limite').value;
@@ -1040,7 +1192,7 @@
 
             const mapLayout = {
                 ...layout, margin: { t: 0, b: 0, l: 0, r: 0 }, showlegend: mapMode !== 'TOTAL',
-                legend: { orientation: 'h', x: 0.5, y: -0.05, xanchor: 'center', bgcolor: 'rgba(255,255,255,0.8)', font: { size: 11, color: '#475569' } },
+                legend: { ...legendStyle, y: -0.05, bgcolor: 'rgba(255,255,255,0.9)' },
                 geo: geojsonData ? { fitbounds: 'locations', visible: false, bgcolor: 'transparent' } : { scope: 'south america', center: { lat: 4.5, lon: -73.0 }, projection: { type: 'mercator', scale: isMobile ? 3.5 : 4.5 }, showland: true, landcolor: '#f8fafc', showcountries: true, countrycolor: '#e2e8f0', bgcolor: 'transparent' }
             };
 
@@ -1069,7 +1221,7 @@
                 tracesEvol.push({
                     x: años, y: valsAños, type: 'scatter', mode: 'lines+markers+text',
                     text: textosConCrecimiento, textposition: 'top center',
-                    textfont: { weight: 700, color: coloresTexto, size: isMobile ? 10 : 11 },
+                    textfont: { family: "'Inter', sans-serif", weight: 700, color: coloresTexto, size: isMobile ? 10 : 11 },
                     line: { color: '#3b82f6', width: 4, shape: 'spline' },
                     marker: { size: 10, color: '#3b82f6', line: { color: '#ffffff', width: 2 } },
                     fill: 'tozeroy', fillcolor: 'rgba(59, 130, 246, 0.1)'
@@ -1088,7 +1240,7 @@
                         mode: 'lines+markers+text', 
                         text: yVals.map(v => v > 0 ? v.toLocaleString() : ''),
                         textposition: 'top center',
-                        textfont: { size: 10, color: color, weight: 'bold' },
+                        textfont: { family: "'Inter', sans-serif", size: 10, color: color, weight: 'bold' },
                         line: { width: 3, shape: 'spline', color: color }, 
                         marker: { size: 8, color: color, line: { color: '#ffffff', width: 1 } }, 
                         hoverinfo: 'name+y+x' 
@@ -1098,10 +1250,10 @@
 
             let maxTotalEvol = Math.max(...años.map(a => aggEvolDetalle[a].total), 1);
             const layoutEvol = {
-                ...layout, showlegend: modeEvol !== 'TOTAL', legend: { orientation: 'h', x: 0.5, y: -0.2, xanchor: 'center', font: { size: 11, color: '#64748b' } },
-                margin: { l: isMobile ? 40 : 60, r: 20, t: 30, b: 60 },
-                xaxis: { showgrid: false, tickfont: { color: '#64748b', weight: 'bold' } },
-                yaxis: { range: [0, maxTotalEvol * 1.3], showticklabels: true, gridcolor: '#f1f5f9', zeroline: false }, hovermode: 'x unified'
+                ...layout, showlegend: modeEvol !== 'TOTAL', legend: legendStyle,
+                margin: { l: isMobile ? 40 : 60, r: 20, t: 30, b: 80 },
+                xaxis: { showgrid: false, tickfont: { family: "'Inter', sans-serif", color: '#64748b', weight: 'bold' } },
+                yaxis: { range: [0, maxTotalEvol * 1.3], showticklabels: true, gridcolor: '#f1f5f9', zeroline: false, tickfont: { family: "'Inter', sans-serif" } }, hovermode: 'x unified'
             };
 
             Plotly.newPlot('grafico-evolucion', tracesEvol, layoutEvol, confGen);
@@ -1119,15 +1271,15 @@
             if (modeIes === 'TOTAL') {
                 tracesIes.push({
                     type: 'bar', orientation: 'h', customdata: tIes.k.slice().reverse(), y: tIes.k.slice().reverse().map(truncar), x: tIes.v.slice().reverse(),
-                    text: tIes.v.slice().reverse().map(v => v.toLocaleString()), textposition: 'outside', marker: { color: '#3b82f6', line: { color: '#ffffff', width: 2 } }
+                    text: tIes.v.slice().reverse().map(v => v.toLocaleString()), textposition: 'outside', textfont: { family: "'Inter', sans-serif" }, marker: { color: '#3b82f6', line: { color: '#ffffff', width: 2 } }
                 });
             } else {
                 tracesIes = crearTracesApilados(aggIesDetalle, tIes.k.slice().reverse(), modeIes.toLowerCase()).map(t => ({ ...t, marker: { ...t.marker, line: { color: '#ffffff', width: 1.5 } }, textposition: 'auto' }));
             }
 
             Plotly.newPlot('grafico-instituciones', tracesIes, {
-                ...layout, barmode: modeIes === 'TOTAL' ? 'group' : 'stack', showlegend: modeIes !== 'TOTAL', legend: { orientation: 'h', x: 0.5, y: -0.1, xanchor: 'center', font: { size: 11, color: '#64748b' } },
-                margin: { l: 10, t: 30, b: 30, r: 50 }, xaxis: { showgrid: true, gridcolor: '#f1f5f9', zeroline: false }, yaxis: { automargin: true, tickfont: { size: 12, color: '#1e293b' } }
+                ...layout, barmode: modeIes === 'TOTAL' ? 'group' : 'stack', showlegend: modeIes !== 'TOTAL', legend: legendStyle,
+                margin: { l: 10, t: 30, b: 60, r: 50 }, xaxis: { showgrid: true, gridcolor: '#f1f5f9', zeroline: false }, yaxis: { automargin: true, tickfont: { family: "'Inter', sans-serif", size: 12, color: '#1e293b' } }
             }, confGen);
             bindPlotlyClick('grafico-instituciones', 'ies', d => d.points[0].customdata);
 
@@ -1142,18 +1294,17 @@
             if (modeProg === 'TOTAL') {
                 tracesProg.push({
                     type: 'bar', orientation: 'h', customdata: tProg.k.slice().reverse(), y: tProg.k.slice().reverse().map(truncar), x: tProg.v.slice().reverse(),
-                    text: tProg.v.slice().reverse().map(v => v.toLocaleString()), textposition: 'outside', marker: { color: '#8b5cf6', line: { color: '#ffffff', width: 2 } }
+                    text: tProg.v.slice().reverse().map(v => v.toLocaleString()), textposition: 'outside', textfont: { family: "'Inter', sans-serif" }, marker: { color: '#8b5cf6', line: { color: '#ffffff', width: 2 } }
                 });
             } else {
                 tracesProg = crearTracesApilados(aggProgDetalle, tProg.k.slice().reverse(), modeProg.toLowerCase()).map(t => ({ ...t, marker: { ...t.marker, line: { color: '#ffffff', width: 1.5 } }, textposition: 'auto' }));
             }
 
             Plotly.newPlot('grafico-programas', tracesProg, {
-                ...layout, barmode: modeProg === 'TOTAL' ? 'group' : 'stack', showlegend: modeProg !== 'TOTAL', legend: { orientation: 'h', x: 0.5, y: -0.1, xanchor: 'center', font: { size: 11, color: '#64748b' } },
-                margin: { l: 10, t: 30, b: 30, r: 50 }, xaxis: { showgrid: true, gridcolor: '#f1f5f9', zeroline: false }, yaxis: { automargin: true, tickfont: { size: 12, color: '#1e293b' } }
+                ...layout, barmode: modeProg === 'TOTAL' ? 'group' : 'stack', showlegend: modeProg !== 'TOTAL', legend: legendStyle,
+                margin: { l: 10, t: 30, b: 60, r: 50 }, xaxis: { showgrid: true, gridcolor: '#f1f5f9', zeroline: false }, yaxis: { automargin: true, tickfont: { family: "'Inter', sans-serif", size: 12, color: '#1e293b' } }
             }, confGen);
             bindPlotlyClick('grafico-programas', 'programa', d => d.points[0].customdata);
-
 
             // --- NUEVOS TOPs (Municipios y Deptos) ---
             
@@ -1168,14 +1319,14 @@
             if (modeMuni === 'TOTAL') {
                 tracesMuni.push({
                     type: 'bar', orientation: 'h', customdata: tMuni.k.slice().reverse(), y: tMuni.k.slice().reverse().map(truncar), x: tMuni.v.slice().reverse(),
-                    text: tMuni.v.slice().reverse().map(v => v.toLocaleString()), textposition: 'outside', marker: { color: '#10b981', line: { color: '#ffffff', width: 2 } }
+                    text: tMuni.v.slice().reverse().map(v => v.toLocaleString()), textposition: 'outside', textfont: { family: "'Inter', sans-serif" }, marker: { color: '#10b981', line: { color: '#ffffff', width: 2 } }
                 });
             } else {
                 tracesMuni = crearTracesApilados(aggMuniDetalle, tMuni.k.slice().reverse(), modeMuni.toLowerCase()).map(t => ({ ...t, marker: { ...t.marker, line: { color: '#ffffff', width: 1.5 } }, textposition: 'auto' }));
             }
             Plotly.newPlot('grafico-municipios', tracesMuni, {
-                ...layout, barmode: modeMuni === 'TOTAL' ? 'group' : 'stack', showlegend: modeMuni !== 'TOTAL', legend: { orientation: 'h', x: 0.5, y: -0.1, xanchor: 'center', font: { size: 11, color: '#64748b' } },
-                margin: { l: 10, t: 30, b: 30, r: 50 }, xaxis: { showgrid: true, gridcolor: '#f1f5f9', zeroline: false }, yaxis: { automargin: true, tickfont: { size: 12, color: '#1e293b' } }
+                ...layout, barmode: modeMuni === 'TOTAL' ? 'group' : 'stack', showlegend: modeMuni !== 'TOTAL', legend: legendStyle,
+                margin: { l: 10, t: 30, b: 60, r: 50 }, xaxis: { showgrid: true, gridcolor: '#f1f5f9', zeroline: false }, yaxis: { automargin: true, tickfont: { family: "'Inter', sans-serif", size: 12, color: '#1e293b' } }
             }, confGen);
             bindPlotlyClick('grafico-municipios', 'municipio', d => d.points[0].customdata);
 
@@ -1190,36 +1341,33 @@
             if (modeDeptoBar === 'TOTAL') {
                 tracesDepto.push({
                     type: 'bar', orientation: 'h', customdata: tDepto.k.slice().reverse(), y: tDepto.k.slice().reverse().map(truncar), x: tDepto.v.slice().reverse(),
-                    text: tDepto.v.slice().reverse().map(v => v.toLocaleString()), textposition: 'outside', marker: { color: '#f59e0b', line: { color: '#ffffff', width: 2 } }
+                    text: tDepto.v.slice().reverse().map(v => v.toLocaleString()), textposition: 'outside', textfont: { family: "'Inter', sans-serif" }, marker: { color: '#f59e0b', line: { color: '#ffffff', width: 2 } }
                 });
             } else {
                 tracesDepto = crearTracesApilados(aggDeptoDetalle, tDepto.k.slice().reverse(), modeDeptoBar.toLowerCase()).map(t => ({ ...t, marker: { ...t.marker, line: { color: '#ffffff', width: 1.5 } }, textposition: 'auto' }));
             }
             Plotly.newPlot('grafico-departamentos', tracesDepto, {
-                ...layout, barmode: modeDeptoBar === 'TOTAL' ? 'group' : 'stack', showlegend: modeDeptoBar !== 'TOTAL', legend: { orientation: 'h', x: 0.5, y: -0.1, xanchor: 'center', font: { size: 11, color: '#64748b' } },
-                margin: { l: 10, t: 30, b: 30, r: 50 }, xaxis: { showgrid: true, gridcolor: '#f1f5f9', zeroline: false }, yaxis: { automargin: true, tickfont: { size: 12, color: '#1e293b' } }
+                ...layout, barmode: modeDeptoBar === 'TOTAL' ? 'group' : 'stack', showlegend: modeDeptoBar !== 'TOTAL', legend: legendStyle,
+                margin: { l: 10, t: 30, b: 60, r: 50 }, xaxis: { showgrid: true, gridcolor: '#f1f5f9', zeroline: false }, yaxis: { automargin: true, tickfont: { family: "'Inter', sans-serif", size: 12, color: '#1e293b' } }
             }, confGen);
             bindPlotlyClick('grafico-departamentos', 'depto', d => d.points[0].customdata);
 
-            // --- 5. GRÁFICOS CIRCULARES (ESTILO Y COLORES OPTIMIZADOS) ---
+            // --- 5. GRÁFICOS CIRCULARES ---
             const donutLytBase = {
-                ...layout, margin: { t: 40, b: 80, l: 80, r: 80 }, showlegend: true, paper_bgcolor: 'rgba(0,0,0,0)', font: { family: "'Inter', sans-serif" }, grid: { rows: 1, columns: 1 },
-                legend: { orientation: 'h', x: 0.5, y: -0.25, xanchor: 'center', font: { size: 11, color: '#64748b' } }
+                ...layout, margin: { t: 40, b: 100, l: 40, r: 40 }, showlegend: true, paper_bgcolor: 'rgba(0,0,0,0)', font: { family: "'Inter', sans-serif" }, grid: { rows: 1, columns: 1 },
+                legend: legendStyle
             };
 
             const obtenerAnotacionCentral = (dataLabels) => [{
-                font: { size: 24, color: '#1e293b', weight: 'bold' }, showarrow: false,
+                font: { family: "'Inter', sans-serif", size: 24, color: '#1e293b', weight: 'bold' }, showarrow: false,
                 text: Object.values(dataLabels).reduce((a, b) => a + b, 0).toLocaleString(), x: 0.5, y: 0.5
             }];
 
-            // NUEVA FUNCIÓN: Ahora Mapea dinámicamente usando "coloresVisuales"
             const crearDataDonut = (labels, paletaNombre) => {
-                // Ordenar por nombre para estabilidad
                 const llaves = Object.keys(labels).sort();
                 const valores = llaves.map(k => labels[k]);
                 const paleta = coloresVisuales[paletaNombre] || {};
                 
-                // Si la categoría tiene color asignado lo usa, si no, usa el fallback consistente
                 const coloresArray = llaves.map((k, idx) => paleta[k] || coloresFallback[idx % coloresFallback.length]);
 
                 return [{
@@ -1230,36 +1378,24 @@
                     textinfo: 'percent',
                     textposition: 'outside',
                     automargin: false,
-                    marker: {
-                        colors: coloresArray,
-                        line: { color: '#ffffff', width: 3 }
-                    },
-                    textfont: { size: 17, color: '#1e293b', weight: 'bold' },
+                    marker: { colors: coloresArray, line: { color: '#ffffff', width: 3 } },
+                    textfont: { family: "'Inter', sans-serif", size: 15, color: '#1e293b', weight: 'bold' },
                     domain: { x: [0, 1], y: [0, 1] }
                 }];
             };
 
-            // Nivel Académico
             Plotly.newPlot('grafico-nivel', crearDataDonut(agg.nivel, 'NIVEL'), { ...donutLytBase, annotations: obtenerAnotacionCentral(agg.nivel) }, confGen);
-            // Agregado Interactive Click!
             bindPlotlyClick('grafico-nivel', 'nivel', d => d.points[0].label);
 
-            // Metodología
             Plotly.newPlot('grafico-metodologia', crearDataDonut(agg.metod, 'METOD'), { ...donutLytBase, annotations: obtenerAnotacionCentral(agg.metod) }, confGen);
-            // Agregado Interactive Click!
             bindPlotlyClick('grafico-metodologia', 'metodologia', d => d.points[0].label);
 
-            // Análisis de Sexo
             Plotly.newPlot('grafico-sexo', crearDataDonut(agg.sexo, 'SEXO'), { ...donutLytBase, annotations: obtenerAnotacionCentral(agg.sexo) }, confGen);
-            // Agregado Interactive Click!
             bindPlotlyClick('grafico-sexo', 'sexo', d => d.points[0].label);
 
-            // Semestre
             Plotly.newPlot('grafico-semestre', crearDataDonut(agg.semestre, 'SEMESTRE'), { ...donutLytBase, annotations: obtenerAnotacionCentral(agg.semestre) }, confGen);
-            // Agregado Interactive Click!
             bindPlotlyClick('grafico-semestre', 'semestre', d => d.points[0].label);
 
-            // Sector
             Plotly.newPlot('grafico-sector', crearDataDonut(agg.sector, 'SECTOR'), { ...donutLytBase, annotations: obtenerAnotacionCentral(agg.sector) }, confGen);
             bindPlotlyClick('grafico-sector', 'sector', d => d.points[0].label);
 
