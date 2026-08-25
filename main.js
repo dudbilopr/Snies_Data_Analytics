@@ -7,17 +7,26 @@ const state = {
     loaded: false
 };
 
+function parseSplitData(json) {
+    if (!json || !json.data || !json.columns) return [];
+    return json.data.map(row => {
+        let obj = {};
+        json.columns.forEach((col, i) => obj[col] = row[i]);
+        return obj;
+    });
+}
+
 async function loadData() {
     try {
         const [matriculadosRes, docentesRes, preciosRes] = await Promise.all([
-            fetch('./data/estudiantes_matriculados.json').catch(() => ({ json: () => [] })),
-            fetch('./data/docentes.json').catch(() => ({ json: () => [] })),
-            fetch('./data/precios_2026.json').catch(() => ({ json: () => [] }))
+            fetch('./data/estudiantes_matriculados.json').catch(() => ({ json: () => null })),
+            fetch('./data/docentes.json').catch(() => ({ json: () => null })),
+            fetch('./data/precios_2026.json').catch(() => ({ json: () => null }))
         ]);
 
-        state.estudiantes_matriculados = await matriculadosRes.json();
-        state.docentes = await docentesRes.json();
-        state.precios = await preciosRes.json();
+        state.estudiantes_matriculados = parseSplitData(await matriculadosRes.json());
+        state.docentes = parseSplitData(await docentesRes.json());
+        state.precios = parseSplitData(await preciosRes.json());
         
         state.loaded = true;
         renderView('dashboard');
