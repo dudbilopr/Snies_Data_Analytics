@@ -67,7 +67,15 @@
         </div>
     </main>
 
-    <!-- Libraries -->
+    <!-- Libraries (CDN) para GitHub Pages -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script>
+        // Registrar el plugin de datalabels globalmente
+        Chart.register(ChartDataLabels);
+    </script>
+    
+    <!-- Archivo principal -->
     <script type="module" src="./main.js"></script>
 </body>
 </html>

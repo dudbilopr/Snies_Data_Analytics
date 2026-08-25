@@ -1,7 +1,4 @@
-import Chart from 'chart.js/auto';
-import ChartDataLabels from 'chartjs-plugin-datalabels';
-
-Chart.register(ChartDataLabels);
+// Chart.js se carga globalmente desde el CDN en index.html
 
 const state = {
     estudiantes_matriculados: [],
