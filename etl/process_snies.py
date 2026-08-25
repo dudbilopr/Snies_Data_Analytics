@@ -168,6 +168,8 @@ def procesar_carpeta_snies(base_path):
                 df_grouped = df_final.groupby(group_keys, dropna=False)[num_keys].sum().reset_index()
             else:
                 df_grouped = df_final
+            import numpy as np
+            df_grouped = df_grouped.replace({np.nan: None})
             resultados[cat] = df_grouped.to_dict(orient='split')
     # Guardar a JSON
     os.makedirs(r'c:\Users\dudbi\Downloads\Control de Perdida CDAT\Snies_Data_Analytics\public\data', exist_ok=True)

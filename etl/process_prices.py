@@ -29,6 +29,8 @@ def process_prices():
         df['Modalidad'] = df['Modalidad'].astype(str).str.replace('\n', ' ').str.strip()
         df['Programa'] = df['Programa'].astype(str).str.strip()
         
+        import numpy as np
+        df = df.replace({np.nan: None})
         data = df.to_dict(orient='split')
         
         out_path = r'c:\Users\dudbi\Downloads\Control de Perdida CDAT\Snies_Data_Analytics\public\data\precios_2026.json'
