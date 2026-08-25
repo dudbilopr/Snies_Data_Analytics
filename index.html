@@ -1,81 +1,609 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ecosistema de Análisis - Ciencia de Datos (SNIES)</title>
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- CSS -->
-    <link rel="stylesheet" href="./style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dashboard Analítico Educativo - Multi-Área</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind & Data Processing Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+
+    <!-- PLUGIN VIRTUAL SELECT (Para filtros múltiples) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/virtual-select-plugin@1.0.39/dist/virtual-select.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/virtual-select-plugin@1.0.39/dist/virtual-select.min.js"></script>
+
+    <style>
+        /* --- BASE Y TIPOGRAFÍA --- */
+        body {
+            background-color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* --- TARJETAS (CARDS) --- */
+        .pbi-card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .pbi-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+        }
+
+        .pbi-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #1e293b;
+            padding: 14px 18px 10px 18px;
+            letter-spacing: -0.01em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f1f5f9;
+            gap: 8px;
+        }
+
+        /* --- KPIs --- */
+        .kpi-box {
+            padding: 18px;
+            text-align: left;
+            justify-content: center;
+        }
+
+        .kpi-value {
+            font-size: 1.85rem;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            margin-top: 6px;
+        }
+
+        @media (min-width: 768px) {
+            .kpi-value {
+                font-size: 2.25rem;
+            }
+        }
+
+        .kpi-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 2px;
+            letter-spacing: 0.08em;
+        }
+
+        .kpi-sub {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        .chart-scroll-wrapper {
+            flex: 1 1 auto;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 0;
+            min-width: 0;
+            display: block;
+            padding-bottom: 5px;
+        }
+
+        /* --- CONTROLES Y SELECTORES --- */
+        select {
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 8px 12px;
+            width: 100%;
+            outline: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+
+        select:hover {
+            border-color: #94a3b8;
+        }
+
+        select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .dataset-selector {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #0f172a;
+            border: 1px solid transparent;
+            padding: 6px 12px;
+            border-radius: 8px;
+            background-color: #f1f5f9;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 1.1em;
+            padding-right: 36px;
+            max-width: 200px;
+            text-overflow: ellipsis;
+        }
+
+        .dataset-selector:hover {
+            background-color: #e2e8f0;
+        }
+
+        @media (min-width: 768px) {
+            .dataset-selector {
+                font-size: 1.25rem;
+                max-width: none;
+            }
+        }
+
+        .viz-selector {
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: #f8fafc;
+            color: #475569;
+            width: auto;
+            min-width: 120px;
+        }
+
+        .viz-selector:focus {
+            border-color: #94a3b8;
+            box-shadow: none;
+        }
+
+        /* --- ESTILOS VIRTUAL SELECT (Asegurando interactividad) --- */
+        .vscomp-wrapper {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            color: #334155;
+            width: 100%;
+        }
+        .vscomp-toggle-button {
+            padding: 6px 10px;
+            border-radius: 8px;
+            border-color: #cbd5e1;
+            background-color: #ffffff;
+            min-height: 36px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .vscomp-toggle-button:hover {
+            border-color: #94a3b8;
+        }
+        .vscomp-ele_active .vscomp-toggle-button {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+        .vscomp-value {
+            color: #334155;
+            font-weight: 600;
+        }
+        .vscomp-option.selected {
+            background-color: #eff6ff;
+            color: #1d4ed8;
+            font-weight: 600;
+        }
+        .vscomp-option-text {
+            font-weight: 500;
+        }
+        .vscomp-search-input {
+            font-size: 0.85rem;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Asegurar que el componente luzca deshabilitado cuando deba estarlo, pero que funcione normal el resto del tiempo */
+        .vscomp-wrapper.vscomp-disabled .vscomp-toggle-button {
+            background-color: #f8fafc;
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        /* --- TABLAS (DATAGRID) --- */
+        .table-container {
+            max-height: 350px;
+            overflow-y: auto;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            width: 100%;
+            border-radius: 0 0 12px 12px;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            background: #f8fafc;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            padding: 12px 16px;
+            border-bottom: 2px solid #e2e8f0;
+            z-index: 10;
+            white-space: nowrap;
+            letter-spacing: 0.05em;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        tr:hover td {
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+
+        /* --- SCROLLBARS --- */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* --- FOOTER --- */
+        .footer-rights {
+            background-color: #0f172a;
+            color: #94a3b8;
+            font-size: 0.8rem;
+            padding: 20px;
+            text-align: center;
+            margin-top: auto;
+            font-weight: 400;
+        }
+
+        .footer-rights a {
+            color: #38bdf8;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .footer-rights a:hover {
+            color: #7dd3fc;
+        }
+    </style>
 </head>
-<body>
+
+<body class="text-slate-800">
+
     
-    <!-- Sidebar Navigation -->
-    <nav class="sidebar">
-        <div class="sidebar-header">
-            <div class="logo">
-                <i class="fa-solid fa-chart-line"></i>
-                <span>CDAT Analytics</span>
+
+    <header class="bg-white border-b border-slate-200 px-3 md:px-5 py-3 flex flex-wrap gap-3 justify-between items-center shrink-0 z-20 shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-gradient-to-br from-blue-700 to-indigo-800 rounded-xl flex items-center justify-center text-white shadow-md shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+            </div>
+            <div class="flex flex-col min-w-0">
+                <p class="text-[0.65rem] text-slate-500 uppercase font-bold tracking-widest mb-0.5">SNIES Analytics</p>
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-400 text-xs font-medium hidden md:inline">Área:</span>
+                    <select id="selector-dataset" onchange="cambiarDataset(this.value)" class="dataset-selector"></select>
+                </div>
             </div>
         </div>
-        <ul class="nav-links">
-            <li class="active" data-view="dashboard">
-                <a href="#"><i class="fa-solid fa-border-all"></i> Panorama General</a>
-            </li>
-            <li data-view="estudiantes">
-                <a href="#"><i class="fa-solid fa-user-graduate"></i> Estudiantes</a>
-            </li>
-            <li data-view="docentes">
-                <a href="#"><i class="fa-solid fa-chalkboard-user"></i> Docentes & Admin</a>
-            </li>
-            <li data-view="mercado">
-                <a href="#"><i class="fa-solid fa-money-check-dollar"></i> Precios y Mercado</a>
-            </li>
-            <li data-view="glosario">
-                <a href="#"><i class="fa-solid fa-book"></i> Glosario SNIES</a>
-            </li>
-        </ul>
-        <div class="sidebar-footer">
-            <p>SNIES Data Engine</p>
+
+        <div class="flex items-center">
+            <span id="indicador-carga" class="text-[0.7rem] md:text-xs text-blue-600 flex items-center gap-1.5 font-semibold animate-pulse bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
+                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Conectando...
+            </span>
         </div>
-    </nav>
+    </header>
 
-    <!-- Main Content Area -->
-    <main class="main-content">
-        <header class="topbar">
-            <div class="title-area">
-                <h1 id="page-title">Panorama General</h1>
-                <p id="page-subtitle">Análisis del estado de la Ciencia de Datos en Colombia</p>
-            </div>
-            <div class="actions">
-                <button class="btn-primary" id="refresh-data"><i class="fa-solid fa-rotate-right"></i> Recargar</button>
-            </div>
-        </header>
+    <div id="panel-filtros" class="bg-white border-b border-slate-200 px-3 md:px-5 py-3 shrink-0 z-10 transition-opacity duration-300 shadow-sm relative">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-9 gap-3">
+            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Año</label><div id="filtro-año" class="filtro-multiselect"></div></div>
+            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Semestre</label><div id="filtro-semestre" class="filtro-multiselect"></div></div>
+            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Sector</label><div id="filtro-sector" class="filtro-multiselect"></div></div>
+            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Departamento</label><div id="filtro-depto" class="filtro-multiselect"></div></div>
+            <div class="min-w-0 sm:col-span-2 lg:col-span-1"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Institución (IES)</label><div id="filtro-ies" class="filtro-multiselect"></div></div>
+            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Nivel</label><div id="filtro-nivel" class="filtro-multiselect"></div></div>
+            <div class="min-w-0 sm:col-span-2 lg:col-span-1"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Programa</label><div id="filtro-programa" class="filtro-multiselect"></div></div>
+            <div class="min-w-0"><label class="block text-[0.65rem] font-bold text-slate-500 uppercase mb-1 truncate">Sexo</label><div id="filtro-sexo" class="filtro-multiselect"></div></div>
 
-        <!-- View Container -->
-        <div id="app-container" class="view-container">
-            <!-- Loading State -->
-            <div id="loader" class="loader-container">
-                <div class="spinner"></div>
-                <p>Cargando millones de registros SNIES...</p>
+            <div class="min-w-0 col-span-2 sm:col-span-1">
+                <label class="block text-[0.65rem] font-bold text-blue-600 uppercase mb-1 truncate">Ver Top</label>
+                <select id="filtro-limite" onchange="aplicarFiltros()" class="border-blue-300 bg-blue-50 text-blue-800 font-bold w-full h-[36px]">
+                    <option value="5">Top 5</option>
+                    <option value="10" selected>Top 10</option>
+                    <option value="20">Top 20</option>
+                    <option value="ALL">Todos</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="indicador-filtros-graficos" class="hidden mt-3 pt-2 border-t border-slate-100 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="flex items-center gap-2 flex-wrap flex-1">
+                <span class="font-bold text-blue-700 flex items-center gap-1 text-[0.7rem] md:text-xs">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                    </svg>
+                    Filtros Activos (Gráficas):
+                </span>
+                <span id="texto-filtros-graficos" class="flex gap-1.5 flex-wrap"></span>
+                <button onclick="limpiarFiltrosCruzados()" class="text-slate-500 hover:text-red-600 font-medium ml-1 transition-colors flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded text-[0.7rem] md:text-xs">
+                    Limpiar <span class="hidden sm:inline">Visuales</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <main class="flex-1 p-3 md:p-6 lg:p-8 opacity-0 transition-opacity duration-700 ease-in-out w-full mx-auto max-w-[1600px] pb-12" id="dashboard-content">
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-5 md:mb-6">
+            <div class="pbi-card kpi-box border-l-[5px] border-l-blue-500 bg-gradient-to-br from-blue-50/40 to-transparent">
+                <div class="kpi-label text-blue-600">Matrículas Totales</div>
+                <div class="kpi-value text-slate-900" id="kpi-matriculados">0</div>
+            </div>
+            <div class="pbi-card kpi-box border-l-[5px] border-l-indigo-500 bg-gradient-to-br from-indigo-50/40 to-transparent">
+                <div class="kpi-label text-indigo-600">Instituciones (IES)</div>
+                <div class="kpi-value text-slate-900" id="kpi-ies">0</div>
+            </div>
+            <div class="pbi-card kpi-box border-l-[5px] border-l-pink-500 bg-gradient-to-br from-pink-50/40 to-transparent relative">
+                <div class="kpi-label text-pink-600">Índice Feminidad</div>
+                <div class="kpi-value text-slate-900" id="kpi-paridad">0</div>
+                <div class="kpi-sub absolute bottom-3 right-4 text-pink-400/80 hidden sm:block">Mujeres x 100 Hombres</div>
+                <div class="kpi-sub sm:hidden">Mujeres x 100 Hombres</div>
+            </div>
+            <div class="pbi-card kpi-box border-l-[5px] border-l-emerald-500 bg-gradient-to-br from-emerald-50/40 to-transparent">
+                <div class="kpi-label text-emerald-600">Precio Promedio</div>
+                <div class="kpi-value text-emerald-600 drop-shadow-sm" id="kpi-precio">$ 0</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-5 md:mb-6">
+            <div class="pbi-card h-[380px] lg:h-[420px]">
+                <div class="pbi-title flex-wrap sm:flex-nowrap">
+                    <span class="truncate w-full sm:w-auto">Evolución Histórica <span class="hidden sm:inline text-slate-400 font-medium ml-1">y % Crec.</span></span>
+                    <select id="mode-evolucion" onchange="aplicarFiltros()" class="viz-selector sm:w-auto mt-2 sm:mt-0 shadow-sm">
+                        <option value="TOTAL">Consolidado Total (YoY%)</option>
+                        <option value="SEXO">Comparativa: Sexo</option>
+                        <option value="METOD">Comparativa: Metodología</option>
+                        <option value="SEMESTRE">Comparativa: Semestre</option>
+                        <option value="DEPTO">Comparativa: Departamento</option>
+                        <option value="NIVEL">Comparativa: Tipo de Programa</option>
+                    </select>
+                </div>
+                <div class="chart-scroll-wrapper">
+                    <div id="grafico-evolucion" class="w-full h-full"></div>
+                </div>
+            </div>
+
+            <div class="pbi-card h-[380px] lg:h-[420px]">
+                <div class="pbi-title flex-wrap sm:flex-nowrap">
+                    <span class="truncate w-full sm:w-auto">Mapa de Concentración</span>
+                    <select id="map-mode" onchange="aplicarFiltros()" class="viz-selector sm:w-auto mt-2 sm:mt-0 shadow-sm">
+                        <option value="TOTAL">Totales Consolidados</option>
+                        <option value="SEXO">Comparativa: Sexo</option>
+                        <option value="METOD">Comparativa: Metodología</option>
+                        <option value="SEMESTRE">Comparativa: Semestre</option>
+                    </select>
+                </div>
+                <div class="chart-scroll-wrapper">
+                    <div id="mapa-colombia" class="w-full h-full"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-5 md:mb-6">
+            <div class="pbi-card h-[380px] lg:h-[420px]">
+                <div class="pbi-title flex-wrap sm:flex-nowrap">
+                    <div class="flex items-center gap-2 truncate w-full sm:w-auto">
+                        Top IES
+                        <span class="bg-slate-100 text-slate-500 py-0.5 px-2 rounded-full text-[0.7rem] font-semibold" id="lbl-ies-count"></span>
+                    </div>
+                    <select id="mode-ies" onchange="aplicarFiltros()" class="viz-selector sm:w-auto mt-2 sm:mt-0 shadow-sm">
+                        <option value="TOTAL">Consolidado Total</option>
+                        <option value="SEXO">Comparar: Sexo</option>
+                        <option value="METOD">Comparar: Metodología</option>
+                        <option value="SEMESTRE">Comparar: Semestre</option>
+                    </select>
+                </div>
+                <div class="chart-scroll-wrapper">
+                    <div id="grafico-instituciones" class="w-full h-full"></div>
+                </div>
+            </div>
+
+            <div class="pbi-card h-[380px] lg:h-[420px]">
+                <div class="pbi-title flex-wrap sm:flex-nowrap">
+                    <div class="flex items-center gap-2 truncate w-full sm:w-auto">
+                        Top Programas
+                        <span class="bg-slate-100 text-slate-500 py-0.5 px-2 rounded-full text-[0.7rem] font-semibold" id="lbl-prog-count"></span>
+                    </div>
+                    <select id="mode-prog" onchange="aplicarFiltros()" class="viz-selector sm:w-auto mt-2 sm:mt-0 shadow-sm">
+                        <option value="TOTAL">Consolidado Total</option>
+                        <option value="SEXO">Comparar: Sexo</option>
+                        <option value="METOD">Comparar: Metodología</option>
+                        <option value="SEMESTRE">Comparar: Semestre</option>
+                    </select>
+                </div>
+                <div class="chart-scroll-wrapper">
+                    <div id="grafico-programas" class="w-full h-full"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-5 md:mb-6">
+            <div class="pbi-card h-[380px] lg:h-[420px]">
+                <div class="pbi-title flex-wrap sm:flex-nowrap">
+                    <div class="flex items-center gap-2 truncate w-full sm:w-auto">
+                        Top Municipios
+                        <span class="bg-slate-100 text-slate-500 py-0.5 px-2 rounded-full text-[0.7rem] font-semibold" id="lbl-muni-count"></span>
+                    </div>
+                    <select id="mode-muni" onchange="aplicarFiltros()" class="viz-selector sm:w-auto mt-2 sm:mt-0 shadow-sm">
+                        <option value="TOTAL">Consolidado Total</option>
+                        <option value="SEXO">Comparar: Sexo</option>
+                        <option value="METOD">Comparar: Metodología</option>
+                        <option value="SEMESTRE">Comparar: Semestre</option>
+                    </select>
+                </div>
+                <div class="chart-scroll-wrapper">
+                    <div id="grafico-municipios" class="w-full h-full"></div>
+                </div>
+            </div>
+
+            <div class="pbi-card h-[380px] lg:h-[420px]">
+                <div class="pbi-title flex-wrap sm:flex-nowrap">
+                    <div class="flex items-center gap-2 truncate w-full sm:w-auto">
+                        Top Departamentos
+                        <span class="bg-slate-100 text-slate-500 py-0.5 px-2 rounded-full text-[0.7rem] font-semibold" id="lbl-depto-count"></span>
+                    </div>
+                    <select id="mode-depto-bar" onchange="aplicarFiltros()" class="viz-selector sm:w-auto mt-2 sm:mt-0 shadow-sm">
+                        <option value="TOTAL">Consolidado Total</option>
+                        <option value="SEXO">Comparar: Sexo</option>
+                        <option value="METOD">Comparar: Metodología</option>
+                        <option value="SEMESTRE">Comparar: Semestre</option>
+                    </select>
+                </div>
+                <div class="chart-scroll-wrapper">
+                    <div id="grafico-departamentos" class="w-full h-full"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 md:gap-6 mb-5 md:mb-6">
+            <div class="pbi-card h-[340px] hover:border-blue-200">
+                <div class="pbi-title text-slate-700">Sector IES</div>
+                <div class="chart-scroll-wrapper">
+                    <div id="grafico-sector" class="w-full h-full"></div>
+                </div>
+            </div>
+            <div class="pbi-card h-[340px] hover:border-blue-200">
+                <div class="pbi-title text-slate-700">Nivel Académico</div>
+                <div class="chart-scroll-wrapper">
+                    <div id="grafico-nivel" class="w-full h-full"></div>
+                </div>
+            </div>
+            <div class="pbi-card h-[340px] hover:border-emerald-200">
+                <div class="pbi-title text-slate-700">Metodología</div>
+                <div class="chart-scroll-wrapper">
+                    <div id="grafico-metodologia" class="w-full h-full"></div>
+                </div>
+            </div>
+            <div class="pbi-card h-[340px] hover:border-pink-200">
+                <div class="pbi-title text-slate-700">Análisis de Sexo</div>
+                <div class="chart-scroll-wrapper">
+                    <div id="grafico-sexo" class="w-full h-full"></div>
+                </div>
+            </div>
+            <div class="pbi-card h-[340px] hover:border-amber-200">
+                <div class="pbi-title text-slate-700">Semestre</div>
+                <div class="chart-scroll-wrapper">
+                    <div id="grafico-semestre" class="w-full h-full"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="pbi-card mb-5 md:mb-6 h-[420px]">
+            <div class="pbi-title bg-slate-50/50">
+                <span class="text-slate-800">Comparativa y Flujo entre Variables Categóricas <span class="text-slate-400 font-normal hidden md:inline">(Nivel → Metodología → Sexo)</span></span>
+            </div>
+            <div class="chart-scroll-wrapper p-2">
+                <div id="grafico-parcats" class="w-full h-full"></div>
+            </div>
+        </div>
+
+        <div class="pbi-card shadow-sm">
+            <div class="pbi-title pb-3 border-b border-slate-200 bg-slate-50/80">
+                <span class="font-bold text-slate-800">Detalle Analítico de Oferta</span>
+            </div>
+            <div class="table-container">
+                <table class="w-full text-left border-collapse min-w-[800px] divide-y divide-slate-200">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th scope="col" class="tracking-wider text-slate-500">Institución (IES)</th>
+                            <th scope="col" class="tracking-wider text-slate-500">Programa</th>
+                            <th scope="col" class="tracking-wider text-slate-500">Departamento</th>
+                            <th scope="col" class="text-right tracking-wider text-slate-500">Matrículas</th>
+                            <th scope="col" class="text-right tracking-wider text-slate-500">Precio</th>
+                            <th scope="col" class="text-center tracking-wider text-slate-500">Enlace</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-detalles" class="divide-y divide-slate-100 bg-white"></tbody>
+                </table>
             </div>
         </div>
     </main>
 
-    <!-- Libraries (CDN) para GitHub Pages -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
-    <script>
-        // Registrar el plugin de datalabels globalmente
-        Chart.register(ChartDataLabels);
-    </script>
+    <footer class="bg-slate-900 border-t border-slate-800 mt-auto">
+        <div class="max-w-[1600px] mx-auto px-4 py-6 md:py-8 flex flex-col md:flex-row justify-between items-center text-center md:text-left gap-4">
+            <div class="text-slate-400 text-sm">
+                <p class="font-medium text-slate-300">&copy; <span id="current-year"></span> Todos los derechos reservados.</p>
+                <p class="mt-1 text-xs">Desarrollado para análisis avanzado de datos educativos.</p>
+            </div>
+            <div class="text-slate-400 text-sm">
+                <p>Contacto soporte e incidencias:</p>
+                <a href="mailto:dpabon180@unab.edu.co" class="inline-flex items-center gap-2 mt-1 text-sky-400 hover:text-sky-300 font-medium transition-colors duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    dpabon180@unab.edu.co
+                </a>
+            </div>
+        </div>
+    </footer>
+
     
-    <!-- Archivo principal -->
-    <script type="module" src="./main.js"></script>
+<script type="module" src="./main.js"></script>
 </body>
 </html>
