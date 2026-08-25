@@ -145,13 +145,13 @@ async function cambiarDataset(indice) {
         let pJson = await preciosRes.json();
         
         state.estudiantes_matriculados = parseSplitData(mJson);
-        state.precios = parseSplitData(pJson);
+        state.precios = pJson;
 
         // Hacemos el Join
         const preciosMap = {};
         state.precios.forEach(p => {
-            if(p.Programa && p.Precio) {
-                preciosMap[p.Programa.trim().toUpperCase()] = p.Precio;
+            if(p.IES && p.Precio) {
+                preciosMap[p.IES.trim().toUpperCase()] = p.Precio;
             }
         });
 
@@ -167,7 +167,7 @@ async function cambiarDataset(indice) {
             
             let programaTrim = f.PROGRAMA_ACADEMICO ? String(f.PROGRAMA_ACADEMICO).trim() : 'Sin dato';
             
-            let precioEncontrado = preciosMap[programaTrim.toUpperCase()] || 0;
+            let precioEncontrado = preciosMap[f.IES ? String(f.IES).trim().toUpperCase() : ""] || 0;
 
             return {
                 programa: programaTrim,
