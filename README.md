@@ -1,96 +1,61 @@
 <div align="center">
+  <img src="https://www.unab.edu.co/wp-content/uploads/2022/02/Logo-UNAB-2022.png" alt="UNAB Logo" width="200"/>
 
-<br>
-
-# SNIES Analytics
-
-### Dashboard de inteligencia académica para análisis de oferta educativa en Colombia
-
-<br>
-
-[![Estado](https://img.shields.io/badge/estado-activo-brightgreen?style=flat-square)](https://dudbilopr.github.io/Snies_Data_Analytics/SNIES_Analytics.html)
-[![Fuente](https://img.shields.io/badge/datos-SNIES%20Colombia-blue?style=flat-square)](https://snies.mineducacion.gov.co/)
-[![GitHub Pages](https://img.shields.io/badge/live-GitHub%20Pages-222?style=flat-square)](https://dudbilopr.github.io/Snies_Data_Analytics/SNIES_Analytics.html)
-
-<br>
-
-**[Ver dashboard en vivo](https://dudbilopr.github.io/Snies_Data_Analytics/SNIES_Analytics.html)**
-
-<br>
-
+  # 📊 CDAT Analytics: SNIES Data Engine
+  
+  **Ecosistema de inteligencia académica para el análisis de la oferta educativa en Ciencia de Datos en Colombia.**
+  
+  [![Estado](https://img.shields.io/badge/estado-activo-brightgreen?style=for-the-badge)](#)
+  [![Fuente](https://img.shields.io/badge/datos-SNIES%20Colombia-blue?style=for-the-badge)](https://snies.mineducacion.gov.co/)
+  [![Tecnología](https://img.shields.io/badge/tech-Vite%20%7C%20Vanilla%20JS-orange?style=for-the-badge)](#)
 </div>
 
 ---
 
-## Descripción
+## 🚀 Descripción General
+**CDAT Analytics** es una herramienta de visualización interactiva y escalable diseñada para explorar la oferta educativa colombiana en **Ciencia de Datos e Inteligencia Artificial**. Procesando millones de registros abiertos del Ministerio de Educación Nacional (SNIES), esta plataforma consolida métricas clave sobre:
 
-Herramienta de visualización interactiva para explorar la oferta educativa colombiana por área de conocimiento, institución, departamento y metodología. Construida con datos abiertos del Ministerio de Educación Nacional.
+- 👨‍🎓 **Estudiantes**: Inscritos, Admitidos, Matriculados (totales y primer curso) y Graduados.
+- 👨‍🏫 **Planta Física e Institucional**: Docentes y Administrativos.
+- 💰 **Análisis de Mercado**: Precios y ofertas 2026.
 
----
+## ⚙️ Arquitectura del Proyecto
+El proyecto está estructurado de manera modular para garantizar alto rendimiento y escalabilidad:
 
-## Áreas disponibles
+1. **Pipeline ETL (Python)**: Localizado en la carpeta `etl/`, se encarga de recorrer históricamente las bases masivas de Excel del SNIES, extrayendo, normalizando y filtrando semánticamente los programas de interés.
+2. **Datamart JSON**: Los datos consolidados se exportan como agrupaciones ligeras en formato JSON dentro de `public/data/` (versionados con Git LFS).
+3. **Frontend Modular (Vite)**: Una Single Page Application (SPA) en Vanilla JS y CSS (con diseño *Glassmorphism* y estilos corporativos) para visualización instantánea.
 
-| Área | Estado | Dataset |
-|---|---|---|
-| Radiología e Imágenes Diagnósticas | Disponible | [df_final_NEW.xlsx](df_final_NEW.xlsx) |
-| Ciencia de Datos e Inteligencia Artificial | Disponible | [df_final_Ciencia_de_Datos_Afines.xlsx](df_final_Ciencia_de_Datos_Afines.xlsx) |
-| Ingeniería de Sistemas | En construcción | — |
+## 🛠️ Cómo Ejecutar Localmente
 
----
-
-## Funcionalidades
-
-- KPIs en tiempo real — matrículas totales, número de IES, precio promedio e índice de feminidad
-- Mapa interactivo de Colombia con burbujas proporcionales por departamento
-- Evolución histórica de matrículas por año
-- Rankings por institución y programa (Top 5 / 10 / 20 / Todos)
-- Distribución por nivel académico y metodología
-- Filtros cruzados — clic en cualquier gráfica filtra todo el dashboard
-- Tabla de detalle con enlace directo a cada programa
-
----
-
-## Tecnologías
-
-| Librería | Uso |
-|---|---|
-| [Plotly.js](https://plotly.com/javascript/) | Visualizaciones interactivas |
-| [SheetJS](https://sheetjs.com/) | Lectura de archivos Excel |
-| [GitHub Pages](https://pages.github.com/) | Hosting |
-| HTML / CSS / JS | Sin frameworks ni build steps |
-
----
-
-## Estructura
-
-```
-Snies_Data_Analytics/
-├── SNIES_Analytics.html   # Dashboard principal
-├── df_final_NEW.xlsx      # Dataset Radiología e Imágenes
-├── df_final_Ciencia_de_Datos_Afines.xlsx # Dataset Ciencia de Datos y Afines
-└── README.md
-```
-
----
-
-## Uso local
-
+### 1. Clonar e Instalar
 ```bash
 git clone https://github.com/dudbilopr/Snies_Data_Analytics.git
-# Abrir SNIES_Analytics.html directamente en el navegador
+cd Snies_Data_Analytics
+npm install
 ```
 
-Requiere conexión a internet para cargar los datos y librerías desde CDN.
+### 2. Iniciar el Servidor de Desarrollo
+```bash
+npm run dev
+```
+> Si no tienes Node.js, puedes usar Python: `python -m http.server 3000`
+
+### 3. Actualizar la Base de Datos (ETL)
+Si descargas nuevos años del SNIES, deposítalos en la carpeta externa respectiva y ejecuta:
+```bash
+python etl/process_snies.py
+python etl/process_prices.py
+```
+
+## 📖 Glosario de Métricas (SNIES)
+- **Inscritos**: Solicitudes para ingreso a un programa.
+- **Admitidos**: Personas aceptadas tras el proceso de selección.
+- **Matriculados en Primer Curso**: Admitidos que formalizan su matrícula por primera vez.
+- **Matriculados**: Estudiantes activos en todas las cohortes.
+- **Graduados**: Estudiantes que han culminado su programa.
 
 ---
-
-## Fuente de datos
-
-Datos provenientes del **Sistema Nacional de Información de la Educación Superior (SNIES)** — Ministerio de Educación Nacional de Colombia.  
-[snies.mineducacion.gov.co](https://snies.mineducacion.gov.co/)
-
----
-
 <div align="center">
-<sub>Desarrollado para el análisis de la educación superior colombiana</sub>
+  <i>Desarrollado para el análisis estratégico de la educación superior en Colombia.</i>
 </div>
