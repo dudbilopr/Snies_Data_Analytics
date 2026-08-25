@@ -19,9 +19,9 @@ function parseSplitData(json) {
 async function loadData() {
     try {
         const [matriculadosRes, docentesRes, preciosRes] = await Promise.all([
-            fetch('./data/estudiantes_matriculados.json').catch(() => ({ json: () => null })),
-            fetch('./data/docentes.json').catch(() => ({ json: () => null })),
-            fetch('./data/precios_2026.json').catch(() => ({ json: () => null }))
+            fetch('./public/data/estudiantes_matriculados.json').catch(() => ({ json: () => null })),
+            fetch('./public/data/docentes.json').catch(() => ({ json: () => null })),
+            fetch('./public/data/precios_2026.json').catch(() => ({ json: () => null }))
         ]);
 
         state.estudiantes_matriculados = parseSplitData(await matriculadosRes.json());
